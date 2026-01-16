@@ -7,7 +7,10 @@ spec:
   description: "Project for Ghost blogging platform deployments (dev/staging/prod)"
   sourceRepos:
   - https://github.com/dmitri166/ghost_on_prem_project
+  - git@github.com:dmitri166/ghost_on_prem_project.git
   destinations:
+  - namespace: ghost
+    server: https://kubernetes.default.svc
   - namespace: dev
     server: https://kubernetes.default.svc
   - namespace: staging

@@ -47,11 +47,23 @@ variable "tags" {
 
 # Local values
 locals {
+  kubeconfig_path = "${path.module}/../../k3d-config"
   common_tags = merge(var.tags, {
     "component"   = "gitops"
     "managed-by"  = "terraform"
     "environment"  = var.environment
   })
+}
+
+# Configure Kubernetes provider
+provider "kubernetes" {
+  config_path = local.kubeconfig_path
+}
+
+provider "helm" {
+  kubernetes {
+    config_path = local.kubeconfig_path
+  }
 }
 
 # Install ArgoCD using Helm chart
@@ -61,7 +73,7 @@ resource "helm_release" "argocd" {
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
   version    = "5.51.0"
-  timeout    = 600
+  timeout    = 1200  # 20 minutes
 
   create_namespace = true
 

@@ -9,13 +9,13 @@ This repository implements a **production-ready Ghost blogging platform** with c
 ### **Ghost Platform Stack**
 ```
 ┌─────────────────┬─────────────────┬─────────────────┐
-│   Application   │   Platform      │   Infrastructure │
+│   Application   │   Platform      │   Infrastructure│
 ├─────────────────┼─────────────────┼─────────────────┤
-│ Ghost CMS       │   ArgoCD       │      k3d        │
-│ Node.js         │ KEDA Autoscaling│      Terraform    │
-│ OpenTelemetry  │   Prometheus   │   Docker Desktop │
-│ Health Checks  │   Grafana      │      WSL2        │
-│ Security Scan  │   Tempo        │                 │
+│ Ghost CMS       │   ArgoCD        │      k3d        │
+│ Node.js         │ KEDA Autoscaling│      Terraform  │
+│ OpenTelemetry   │   Prometheus    │   Docker Desktop│
+│ Health Checks   │   Grafana       │      WSL2       │
+│ Security Scan   │   Tempo         │                 │
 └─────────────────┴─────────────────┴─────────────────┘
 ```
 
@@ -90,21 +90,57 @@ kubectl get applications -n argocd
 
 ### **Ghost Platform**
 ```bash
-# Ghost Applications
-Ghost Dev:      http://ghost-dev.local:2368
-Ghost Staging:  http://ghost-staging.local:2368
-Ghost Prod:     https://ghost-prod.local
+# Ghost Applications (with port forwarding)
+Ghost Dev:      http://localhost:2368
+Ghost Staging:  http://localhost:2369
+Ghost Prod:     http://localhost:2370
 
 # Ghost Admin
-Admin Dev:      http://ghost-dev.local:2368/ghost
-Admin Staging:  http://ghost-staging.local:2368/ghost
-Admin Prod:     https://ghost-prod.local/ghost
+Admin Dev:      http://localhost:2368/ghost
+Admin Staging:  http://localhost:2369/ghost
+Admin Prod:     http://localhost:2370/ghost
 
 # GitOps & Monitoring
 ArgoCD:         http://localhost:8080
 Prometheus:     http://localhost:9090
 Grafana:        http://localhost:3000
 Tempo:          http://localhost:3100
+```
+
+### **Port Forwarding Commands**
+```bash
+# Ghost Dev
+kubectl port-forward -n ghost svc/ghost-dev-ghost 2368:2368
+
+# Ghost Staging
+kubectl port-forward -n ghost svc/ghost-staging-ghost 2369:2368
+
+# Ghost Prod
+kubectl port-forward -n ghost svc/ghost-prod-ghost 2370:2368
+
+# ArgoCD (try different ports)
+kubectl port-forward -n argocd svc/argocd-server 8080:80
+kubectl port-forward -n argocd svc/argocd-server 8443:443
+
+# Prometheus
+kubectl port-forward -n monitoring svc/prometheus-server 9090:9090
+
+# Grafana
+kubectl port-forward -n monitoring svc/grafana 3000:3000
+```
+
+### **Troubleshooting Port Forwarding**
+```bash
+# Check service ports first
+kubectl get svc -n argocd
+kubectl get svc -n ghost
+kubectl get svc -n monitoring
+
+# Check if services exist
+kubectl get svc -n argocd -o wide
+
+# Alternative: Use NodePort if available
+kubectl get svc -n argocd -o yaml | grep -i port
 ```
 
 ## 🔧 Platform Components
