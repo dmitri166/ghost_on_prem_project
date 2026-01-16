@@ -29,6 +29,15 @@ resources:
     cpu: 100m
     memory: 128Mi
 
+# Database configuration via environment variables
+env:
+  database__client: mysql
+  database__connection__host: mysql.ghost.svc.cluster.local
+  database__connection__port: "3306"
+  database__connection__user: ghost
+  database__connection__password: ghost123
+  database__connection__database: ghost
+
 ghost:
   config:
     url: http://ghost-dev.local:2368
