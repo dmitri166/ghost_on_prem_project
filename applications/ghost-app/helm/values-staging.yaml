@@ -8,6 +8,10 @@ image:
 service:
   port: 2368
 
+serviceAccount:
+  create: true
+  name: ghost-staging
+
 ingress:
   enabled: true
   hosts:
