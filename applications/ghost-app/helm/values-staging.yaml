@@ -3,6 +3,7 @@
 replicaCount: 2
 
 image:
+  repository: ghost
   tag: "5.75.1"
 
 service:
