@@ -1,0 +1,26 @@
+apiVersion: v2
+name: loki-stack
+description: Complete logging stack for Ghost platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: loki
+    version: "5.0.0"
+    repository: "https://grafana.github.io/helm-charts"
+
+keywords:
+  - logging
+  - loki
+  - promtail
+  - ghost
+
+home: https://github.com/dmitri166/ghost_on_prem_project
+
+sources:
+  - https://github.com/dmitri166/ghost_on_prem_project
+
+maintainers:
+  - name: Ghost Platform Team
+    email: team@ghost-platform.local
