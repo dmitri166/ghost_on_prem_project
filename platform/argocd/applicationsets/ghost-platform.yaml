@@ -81,8 +81,6 @@ spec:
       annotations:
         argocd.argoproj.io/sync-options: CreateNamespace=true
         argocd.argoproj.io/compare-options: IgnoreExtraneous
-        argocd.argoproj.io/health-check: | 
-          curl -f http://ghost-{{environment}}.local:2368/healthcheck || exit 1
 
     spec:
       project: ghost-apps
