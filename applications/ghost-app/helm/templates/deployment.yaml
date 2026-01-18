@@ -72,30 +72,15 @@ spec:
             - name: database__client
               value: {{ .Values.database.client }}
             - name: database__connection__host
-              valueFrom:
-                secretKeyRef:
-                  name: ghost-database-secrets
-                  key: mysql-host
+              value: {{ .Values.database.connection.host | quote }}
             - name: database__connection__port
-              valueFrom:
-                secretKeyRef:
-                  name: ghost-database-secrets
-                  key: mysql-port
+              value: {{ .Values.database.connection.port | quote }}
             - name: database__connection__user
-              valueFrom:
-                secretKeyRef:
-                  name: ghost-database-secrets
-                  key: mysql-user
+              value: {{ .Values.database.connection.user | quote }}
             - name: database__connection__password
-              valueFrom:
-                secretKeyRef:
-                  name: ghost-database-secrets
-                  key: mysql-password
+              value: {{ .Values.database.connection.password | quote }}
             - name: database__connection__database
-              valueFrom:
-                secretKeyRef:
-                  name: ghost-database-secrets
-                  key: mysql-database
+              value: {{ .Values.database.connection.database | quote }}
             
             # Mail Configuration
             {{- if .Values.ghost.mail }}
@@ -114,7 +99,7 @@ spec:
             - name: {{ $key }}
               {{- if kindIs "string" $value }}
               value: {{ $value | quote }}
-              {{- else if kindIs "map" $value }}
+              {{- else if and (kindIs "map" $value) (or (hasKey $value "fieldRef") (hasKey $value "resourceFieldRef") (hasKey $value "configMapKeyRef") (hasKey $value "secretKeyRef")) }}
               valueFrom:
                 {{- toYaml $value | nindent 16 }}
               {{- end }}

@@ -74,13 +74,13 @@ ghost:
 # Persistence
 persistence:
   enabled: true
-  storageClass: ""
+  storageClass: "local-path"
   accessMode: ReadWriteOnce
   size: 10Gi
 
 # MySQL database (optional - can be external)
 mysql:
-  enabled: true
+  enabled: false
   auth:
     rootPassword: root_password
     database: ghost

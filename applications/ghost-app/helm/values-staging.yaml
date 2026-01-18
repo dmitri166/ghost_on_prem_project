@@ -5,9 +5,11 @@ replicaCount: 1
 image:
   repository: ghost
   tag: "5.75.1"
+  pullPolicy: IfNotPresent
 
 service:
   port: 2368
+  type: ClusterIP
 
 serviceAccount:
   create: true
@@ -26,42 +28,25 @@ resources:
     cpu: 500m
     memory: 512Mi
   requests:
-    cpu: 200m
-    memory: 256Mi
+    cpu: 100m
+    memory: 128Mi
 
-autoscaling:
+# Persistent Storage
+persistence:
   enabled: true
-  minReplicas: 2
-  maxReplicas: 4
+  storageClass: "local-path"
+  size: 1Gi
+  accessMode: ReadWriteOnce
 
-# Database configuration via environment variables using secrets (BEST PRACTICE)
-env:
-  database__client: mysql
-  database__connection__host:
-    valueFrom:
-      secretKeyRef:
-        name: ghost-database-secrets
-        key: mysql-host
-  database__connection__port:
-    valueFrom:
-      secretKeyRef:
-        name: ghost-database-secrets
-        key: mysql-port
-  database__connection__user:
-    valueFrom:
-      secretKeyRef:
-        name: ghost-database-secrets
-        key: mysql-user
-  database__connection__password:
-    valueFrom:
-      secretKeyRef:
-        name: ghost-database-secrets
-        key: mysql-password
-  database__connection__database:
-    valueFrom:
-      secretKeyRef:
-        name: ghost-database-secrets
-        key: mysql-database
+# Database Configuration
+database:
+  client: mysql
+  connection:
+    host: mysql-staging
+    port: 3306
+    user: ghost
+    password: ghost123
+    database: ghost_staging
 
 ghost:
   config:
@@ -69,26 +54,11 @@ ghost:
     adminUrl: http://ghost-staging.local:2368/ghost
     contentUrl: http://ghost-staging.local:2368/content
 
-# Database configuration (BEST PRACTICE)
-database:
-  client: mysql
-  connection:
-    host: mysql.ghost.svc.cluster.local
-    port: 3306
-    user: ghost
-    password: ghost123
-    database: ghost
-
-persistence:
-  size: 10Gi
-
-mysql:
-  enabled: false
-  auth:
-    rootPassword: root123
-    database: ghost
-    user: ghost
-    password: ghost123
-  primary:
-    persistence:
-      size: 4Gi
+# Environment Variables (Simple)
+env:
+  database__client: mysql
+  database__connection__host: mysql-staging
+  database__connection__port: "3306"
+  database__connection__user: ghost
+  database__connection__password: ghost123
+  database__connection__database: ghost_staging

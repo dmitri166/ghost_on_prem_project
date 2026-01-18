@@ -1,8 +1,8 @@
-# BEST PRACTICE: Isolated Databases per Environment
+# Simple Ghost Applications - BEST PRACTICE
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: ghost-platform
+  name: ghost-simple
   namespace: argocd
   labels:
     app.kubernetes.io/name: ghost
@@ -12,69 +12,41 @@ spec:
   generators:
     - list:
         elements:
-          # Development Environment
-          - name: mysql-dev
-            namespace: ghost-dev
-            path: infrastructure/mysql/helm
-            valuesFile: values.yaml
-            targetRevision: HEAD
-            environment: dev
-            component: database
-          
+          # Development
           - name: ghost-dev
             namespace: ghost-dev
             path: applications/ghost-app/helm
             valuesFile: values-dev.yaml
             targetRevision: HEAD
             environment: dev
-            component: application
           
-          # Staging Environment
-          - name: mysql-staging
-            namespace: ghost-staging
-            path: infrastructure/mysql/helm
-            valuesFile: values.yaml
-            targetRevision: HEAD
-            environment: staging
-            component: database
-          
+          # Staging
           - name: ghost-staging
             namespace: ghost-staging
             path: applications/ghost-app/helm
             valuesFile: values-staging.yaml
             targetRevision: HEAD
             environment: staging
-            component: application
           
-          # Production Environment
-          - name: mysql-prod
-            namespace: ghost-prod
-            path: infrastructure/mysql/helm
-            valuesFile: values.yaml
-            targetRevision: HEAD
-            environment: prod
-            component: database
-          
+          # Production
           - name: ghost-prod
             namespace: ghost-prod
             path: applications/ghost-app/helm
             valuesFile: values-prod.yaml
             targetRevision: HEAD
             environment: prod
-            component: application
 
   template:
     metadata:
       name: '{{name}}'
-      namespace: '{{namespace}}'
+      namespace: argocd
       labels:
         app.kubernetes.io/name: ghost
-        app.kubernetes.io/component: '{{component}}'
+        app.kubernetes.io/component: application
         app.kubernetes.io/part-of: ghost-platform
         app.kubernetes.io/env: '{{environment}}'
       annotations:
         argocd.argoproj.io/sync-options: CreateNamespace=true
-        argocd.argoproj.io/compare-options: IgnoreExtraneous
 
     spec:
       project: ghost-apps
@@ -85,11 +57,6 @@ spec:
         helm:
           valueFiles:
             - '{{valuesFile}}'
-          parameters:
-            - name: global.environment
-              value: '{{environment}}'
-            - name: global.namespace
-              value: '{{namespace}}'
 
       destination:
         server: https://kubernetes.default.svc
@@ -103,17 +70,3 @@ spec:
           - CreateNamespace=true
           - PrunePropagationPolicy=foreground
           - PruneLast=true
-        retry:
-          limit: 5
-          backoff:
-            duration: 5s
-            factor: 2
-            maxDuration: 3m
-
-      info:
-        - name: Environment
-          value: '{{environment}}'
-        - name: Namespace
-          value: '{{namespace}}'
-        - name: Deployment Type
-          value: Helm
