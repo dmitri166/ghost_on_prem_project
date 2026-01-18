@@ -32,9 +32,9 @@ spec:
     - p, proj:ghost-apps:ghost-admin, applications, *, ghost-apps/*, allow
     - p, proj:ghost-apps:ghost-admin, applications, sync, ghost-apps/*, allow
   syncWindows:
-  - kind: allow
-    schedule: '0 2 * * *'  # Daily at 2 AM
-    duration: 2h
-    applications:
-    - ghost-prod
+  - applications:
+      - ghost-prod
+    duration: 23h
+    kind: allow
     manualSync: true
+    schedule: 0 0 * * *
