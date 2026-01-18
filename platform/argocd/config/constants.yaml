@@ -36,6 +36,14 @@ CHARTS:
     repository: "https://kedacore.github.io/charts"
     chart: "keda"
     version: "2.12.1"
+  loki:
+    repository: "https://grafana.github.io/helm-charts"
+    chart: "loki"
+    version: "5.0.0"
+  promtail:
+    repository: "https://grafana.github.io/helm-charts"
+    chart: "promtail"
+    version: "6.0.0"
 
 # Network Configuration
 NETWORKING:
@@ -47,6 +55,7 @@ NETWORKING:
     prometheus: "172.18.255.102"
     grafana: "172.18.255.103"
     alertmanager: "172.18.255.104"
+    loki: "172.18.255.105"
 
 # Environment Configuration
 ENVIRONMENTS:

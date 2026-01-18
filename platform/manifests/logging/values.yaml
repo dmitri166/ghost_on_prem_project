@@ -1,0 +1,124 @@
+# Complete Loki Stack Helm Values
+# Best practices for Ghost platform logging
+
+# Global Configuration
+global:
+  imageRegistry: docker.io
+
+# Loki Configuration
+loki:
+  enabled: true
+  
+  # Authentication
+  auth_enabled: false
+  
+  # Storage Configuration
+  storage:
+    type: filesystem
+  
+  # Resource Configuration
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  
+  # Persistence
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 10Gi
+  
+  # Configuration
+  config:
+    server:
+      http_listen_port: 3100
+    ingester:
+      lifecycler:
+        address: 127.0.0.1
+        ring:
+          kvstore:
+            store: inmemory
+          replication_factor: 1
+    schema_config:
+      configs:
+        - from: 2020-10-24
+          store: boltdb-shipper
+          object_store: filesystem
+          schema: v11
+    storage_config:
+      boltdb_shipper:
+        active_index_directory: /loki/boltdb-shipper-active
+        cache_location: /loki/boltdb-shipper-cache
+        shared_store: filesystem
+      filesystem:
+        directory: /loki/chunks
+
+# Promtail Configuration (Log Agent)
+promtail:
+  enabled: true
+  
+  # Resource Configuration
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  # Configuration
+  config:
+    server:
+      http_listen_port: 3101
+    clients:
+      - url: http://loki.logging.svc.cluster.local:3100/loki/api/v1/push
+    scrape_configs:
+      # Kubernetes Pods
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            action: keep
+            regex: ghost
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            action: replace
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_env]
+            action: replace
+            target_label: environment
+      
+      # System Logs
+      - job_name: system
+        static_configs:
+          - targets:
+              - localhost
+            labels:
+              job: syslog
+              __path__: /var/log/syslog
+
+# Service Configuration
+service:
+  type: ClusterIP
+  port: 3100
+  
+# Ingress Configuration
+ingress:
+  enabled: false
+
+# Monitoring
+monitoring:
+  selfMonitoring:
+    enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s

@@ -1,0 +1,113 @@
+# Prometheus Stack Helm Release
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: kube-prometheus-stack
+  namespace: monitoring
+spec:
+  chart: kube-prometheus-stack
+  repo: https://prometheus-community.github.io/helm-charts
+  version: 56.6.1
+  targetNamespace: monitoring
+  valuesContent: |
+    prometheus:
+      enabled: true
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+      persistence:
+        enabled: true
+        storageClass: local-path
+        size: 20Gi
+      retention: "15d"
+      retentionSize: "10GB"
+      service:
+        type: ClusterIP
+        port: 9090
+      ingress:
+        enabled: false
+    
+    grafana:
+      enabled: true
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      persistence:
+        enabled: true
+        storageClass: local-path
+        size: 5Gi
+      service:
+        type: ClusterIP
+        port: 3000
+      adminUser: admin
+      adminPassword: prom-operator
+      ingress:
+        enabled: false
+      sidecar:
+        dashboards:
+          enabled: true
+          searchNamespace: monitoring
+        datasources:
+          enabled: true
+          searchNamespace: monitoring
+    
+    alertmanager:
+      enabled: true
+      resources:
+        limits:
+          cpu: 200m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      persistence:
+        enabled: true
+        storageClass: local-path
+        size: 2Gi
+      service:
+        type: ClusterIP
+        port: 9093
+      ingress:
+        enabled: false
+    
+    nodeExporter:
+      enabled: true
+      resources:
+        limits:
+          cpu: 200m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 64Mi
+    
+    kubeStateMetrics:
+      enabled: true
+      resources:
+        limits:
+          cpu: 200m
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+    
+    prometheusOperator:
+      enabled: true
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 250m
+          memory: 256Mi
+    
+    serviceMonitor:
+      enabled: true
+      selfMonitor: true
