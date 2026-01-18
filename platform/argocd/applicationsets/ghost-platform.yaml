@@ -20,6 +20,7 @@ spec:
             targetRevision: HEAD
             environment: dev
             component: database
+            persistenceSize: 1Gi
           
           - name: ghost-dev
             namespace: ghost-dev
@@ -28,6 +29,7 @@ spec:
             targetRevision: HEAD
             environment: dev
             component: application
+            persistenceSize: 1Gi
           
           # Staging Environment
           - name: mysql-staging
@@ -37,6 +39,7 @@ spec:
             targetRevision: HEAD
             environment: staging
             component: database
+            persistenceSize: 1Gi
           
           - name: ghost-staging
             namespace: ghost-staging
@@ -45,6 +48,7 @@ spec:
             targetRevision: HEAD
             environment: staging
             component: application
+            persistenceSize: 1Gi
           
           # Production Environment
           - name: mysql-prod
@@ -54,6 +58,7 @@ spec:
             targetRevision: HEAD
             environment: prod
             component: database
+            persistenceSize: 2Gi
           
           - name: ghost-prod
             namespace: ghost-prod
@@ -62,11 +67,12 @@ spec:
             targetRevision: HEAD
             environment: prod
             component: application
+            persistenceSize: 2Gi
 
   template:
     metadata:
       name: '{{name}}'
-      namespace: '{{namespace}}'
+      namespace: argocd
       labels:
         app.kubernetes.io/name: ghost
         app.kubernetes.io/component: '{{component}}'
@@ -75,6 +81,8 @@ spec:
       annotations:
         argocd.argoproj.io/sync-options: CreateNamespace=true
         argocd.argoproj.io/compare-options: IgnoreExtraneous
+        argocd.argoproj.io/health-check: | 
+          curl -f http://ghost-{{environment}}.local:2368/healthcheck || exit 1
 
     spec:
       project: ghost-apps
@@ -90,6 +98,10 @@ spec:
               value: '{{environment}}'
             - name: global.namespace
               value: '{{namespace}}'
+            - name: persistence.storageClass
+              value: local-path
+            - name: persistence.size
+              value: '{{persistenceSize}}'
 
       destination:
         server: https://kubernetes.default.svc

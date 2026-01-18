@@ -20,6 +20,7 @@ auth:
 
 primary:
   persistence:
+    storageClass: local-path
     size: 4Gi
 
 # Enable for Ghost compatibility
