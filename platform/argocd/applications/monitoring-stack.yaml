@@ -18,10 +18,10 @@ spec:
         - values.yaml
       parameters:
         - name: global.namespace
-          value: monitoring
+          value: monitoring-new
   destination:
     server: https://kubernetes.default.svc
-    namespace: monitoring
+    namespace: monitoring-new
   syncPolicy:
     automated:
       prune: true

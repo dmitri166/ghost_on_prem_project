@@ -18,10 +18,10 @@ spec:
         - values.yaml
       parameters:
         - name: global.namespace
-          value: logging
+          value: logging-new
   destination:
     server: https://kubernetes.default.svc
-    namespace: logging
+    namespace: logging-new
   syncPolicy:
     automated:
       prune: true

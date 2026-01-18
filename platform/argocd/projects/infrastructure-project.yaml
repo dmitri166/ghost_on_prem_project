@@ -12,6 +12,24 @@ spec:
     server: https://kubernetes.default.svc
   - namespace: monitoring
     server: https://kubernetes.default.svc
+  - namespace: monitoring-new
+    server: https://kubernetes.default.svc
+  - namespace: logging
+    server: https://kubernetes.default.svc
+  - namespace: logging-new
+    server: https://kubernetes.default.svc
+  - namespace: kube-system
+    server: https://kubernetes.default.svc
   clusterResourceWhitelist:
   - group: ""
     kind: Service
+  - group: "rbac.authorization.k8s.io"
+    kind: ClusterRole
+  - group: "rbac.authorization.k8s.io"
+    kind: ClusterRoleBinding
+  - group: "apiextensions.k8s.io"
+    kind: CustomResourceDefinition
+  - group: "admissionregistration.k8s.io"
+    kind: ValidatingWebhookConfiguration
+  - group: "admissionregistration.k8s.io"
+    kind: MutatingWebhookConfiguration
