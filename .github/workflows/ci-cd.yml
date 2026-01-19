@@ -24,7 +24,7 @@ env:
   IMAGE_NAME: dmitrik2026/ghost-app
 
 jobs:
-  # Policy as Code Validation
+  # Policy as Code Validation, Terraform Validation, Security Scans
   policy-validation:
     runs-on: ubuntu-latest
     steps:
