@@ -15,7 +15,6 @@ infrastructure/
 │   └── README.md          # Infrastructure docs
 └── README.md              # Infrastructure documentation
 ```
-
 ## 🎯 What Terraform Manages
 
 ### **Cluster & Runtime**
