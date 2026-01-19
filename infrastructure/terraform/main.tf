@@ -23,34 +23,13 @@ resource "null_resource" "wait_for_cluster" {
   depends_on = [null_resource.create_cluster]
   
   provisioner "local-exec" {
-    command = "k3d kubeconfig merge ${local.cluster_name} > kubeconfig.yaml && kubectl --kubeconfig=kubeconfig.yaml wait --for=condition=Ready nodes --all --timeout=300s"
+    command = "k3d kubeconfig merge ${local.cluster_name} --output kubeconfig.yaml && kubectl --kubeconfig=kubeconfig.yaml wait --for=condition=Ready nodes --all --timeout=300s"
   }
 }
 
-# Create and save kubeconfig
+# Create and save kubeconfig (use k3d-generated config)
 resource "local_file" "kubeconfig" {
-  content  = <<-EOT
-    apiVersion: v1
-    clusters:
-    - cluster:
-        certificate-authority-data: ""
-        server: https://localhost:6443
-      name: ${local.cluster_name}
-    contexts:
-    - context:
-        cluster: ${local.cluster_name}
-        user: ${local.cluster_name}
-      name: ${local.cluster_name}
-    current-context: ${local.cluster_name}
-    kind: Config
-    preferences: {}
-    users:
-    - name: ${local.cluster_name}
-      user:
-        client-certificate-data: ""
-        client-key-data: ""
-  EOT
   filename = "${path.module}/kubeconfig.yaml"
   
-  depends_on = [null_resource.create_cluster]
+  depends_on = [null_resource.wait_for_cluster]
 }
