@@ -6,17 +6,197 @@ on:
     paths:
       - 'applications/ghost-app/**'
       - 'platform/**'
+      - 'infrastructure/terraform/**'
+      - 'policy/**'
       - '.github/workflows/**'
   pull_request:
     branches: [ master ]
     paths:
       - 'applications/ghost-app/**'
+      - 'infrastructure/terraform/**'
+      - 'policy/**'
 
 env:
   REGISTRY: docker.io
   IMAGE_NAME: dmitrik2026/ghost-app
 
 jobs:
+  # Policy as Code Validation
+  policy-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~>1.5.0
+
+      - name: Terraform Format Check
+        run: |
+          cd infrastructure/terraform
+          terraform fmt -check -recursive
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: infrastructure/terraform
+          config_file: policy/checkov/checkov.yaml
+          output_format: sarif
+          output_file_path: reports/checkov-results.sarif
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@master
+        with:
+          directory: infrastructure/terraform
+          config_file: policy/tfsec/tfsec.toml
+          output_format: sarif
+          output_file: reports/tfsec-results.sarif
+
+      - name: Setup OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: latest
+
+      - name: Run OPA Policies
+        run: |
+          cd infrastructure/terraform
+          terraform show -json > terraform.json
+          opa eval -d policy/opa -i terraform.json "data.ghost_platform.terraform.deny" --format=pretty
+
+      - name: Upload Policy Results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: reports/checkov-results.sarif
+
+  # Infrastructure Plan (for PRs)
+  terraform-plan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: policy-validation
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~>1.5.0
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure/terraform
+          terraform init
+
+      - name: Terraform Validate
+        run: |
+          cd infrastructure/terraform
+          terraform validate
+
+      - name: Terraform Plan
+        run: |
+          cd infrastructure/terraform
+          terraform plan -out=tfplan
+        env:
+          TF_VAR_cluster_name: "ghost-platform-pr-${{ github.event.number }}"
+
+      - name: Terraform Show Plan
+        run: |
+          cd infrastructure/terraform
+          terraform show -json tfplan > plan.json
+
+      - name: Comment PR with Plan
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('infrastructure/terraform/plan.json', 'utf8');
+            const planSummary = JSON.parse(plan);
+            
+            const comment = `## 🏗️ Terraform Plan Summary
+            
+            **Changes detected:**
+            - Additions: ${planSummary.resource_changes?.filter(r => r.change.actions.includes('create')).length || 0}
+            - Modifications: ${planSummary.resource_changes?.filter(r => r.change.actions.includes('update')).length || 0}
+            - Deletions: ${planSummary.resource_changes?.filter(r => r.change.actions.includes('delete')).length || 0}
+            
+            <details>
+            <summary>📋 Full Plan Details</summary>
+            
+            \`\`\`hcl
+            ${planSummary.planned_values ? JSON.stringify(planSummary.planned_values, null, 2) : 'No changes detected'}
+            \`\`\`
+            </details>
+            
+            ---
+            *This plan was generated automatically for PR #${{ github.event.number }}*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Infrastructure Apply (for main branch) - SECURED
+  terraform-apply:
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push' && github.actor == 'dmitri166'
+    needs: policy-validation
+    environment: 
+      name: infrastructure
+      url: http://localhost:8080
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~>1.5.0
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure/terraform
+          terraform init
+
+      - name: Terraform Validate
+        run: |
+          cd infrastructure/terraform
+          terraform validate
+
+      - name: Terraform Plan
+        run: |
+          cd infrastructure/terraform
+          terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: |
+          cd infrastructure/terraform
+          terraform apply -auto-approve tfplan
+
+      - name: Notify Deployment Complete
+        if: success()
+        run: |
+          echo "🎉 Infrastructure deployment completed successfully!"
+          echo "📊 Cluster: $(terraform output -raw cluster_name)"
+          echo "🔗 Endpoint: $(terraform output -raw cluster_endpoint)"
+          echo "📁 Kubeconfig: $(terraform output -raw kube_config_path)"
+
+      - name: Upload Kubeconfig
+        uses: actions/upload-artifact@v3
+        with:
+          name: kubeconfig
+          path: infrastructure/terraform/kubeconfig.yaml
+          retention-days: 1
+
   # Security and Quality Checks
   security-scan:
     runs-on: ubuntu-latest
@@ -72,7 +252,7 @@ jobs:
 
   # Build and Security Scan Container
   build-and-scan:
-    needs: [security-scan, test]
+    needs: [policy-validation, security-scan, test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -128,7 +308,7 @@ jobs:
 
   # Update GitOps Configuration
   update-gitops:
-    needs: build-and-scan
+    needs: [build-and-scan, terraform-apply]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:

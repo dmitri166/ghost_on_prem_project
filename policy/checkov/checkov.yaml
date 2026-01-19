@@ -1,0 +1,66 @@
+skip-check:
+  - CKV_AWS_1  # Skip if not using AWS
+  - CKV_AWS_2  # Skip if not using AWS
+  - CKV_AWS_3  # Skip if not using AWS
+  - CKV_AWS_4  # Skip if not using AWS
+  - CKV_AWS_5  # Skip if not using AWS
+  - CKV_AWS_6  # Skip if not using AWS
+  - CKV_AWS_7  # Skip if not using AWS
+  - CKV_AWS_8  # Skip if not using AWS
+  - CKV_AWS_9  # Skip if not using AWS
+  - CKV_AWS_10 # Skip if not using AWS
+  - CKV_AWS_11 # Skip if not using AWS
+  - CKV_AWS_12 # Skip if not using AWS
+  - CKV_AWS_13 # Skip if not using AWS
+  - CKV_AWS_14 # Skip if not using AWS
+  - CKV_AWS_15 # Skip if not using AWS
+  - CKV_AWS_16 # Skip if not using AWS
+  - CKV_AWS_17 # Skip if not using AWS
+  - CKV_AWS_18 # Skip if not using AWS
+  - CKV_AWS_19 # Skip if not using AWS
+  - CKV_AWS_20 # Skip if not using AWS
+
+# Framework-specific configurations
+framework:
+  - terraform
+  - kubernetes
+  - dockerfile
+  - github_actions
+
+# Output configuration
+output:
+  - cli
+  - junitxml
+  - sarif
+  - json
+
+# Directory to scan
+directory:
+  - ../../infrastructure/terraform
+  - ../../applications
+  - ../../platform
+
+# External checks configuration
+external-checks-dir:
+  - ./custom-checks
+
+# Download external modules
+download-external-modules: true
+
+# Evaluate variables
+evaluate-variables: true
+
+# Deep analysis
+deep-analysis: true
+
+# Soft fail on warnings
+soft-fail: true
+
+# Compact mode
+compact: true
+
+# Quiet mode
+quiet: false
+
+# Log level
+log-level: INFO

@@ -1,5 +1,5 @@
-# Complete Loki Stack Helm Values
-# Best practices for Ghost platform logging
+# Minimal Working Loki Stack Values
+# Best practices - simplified for on-prem deployment
 
 # Global Configuration
 global:
@@ -20,18 +20,18 @@ loki:
   resources:
     limits:
       cpu: 200m
-      memory: 512Mi
+      memory: 256Mi
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 128Mi
   
   # Persistence
   persistence:
     enabled: true
     storageClass: local-path
-    size: 10Gi
+    size: 5Gi
   
-  # Configuration
+  # Configuration - minimal working setup
   config:
     server:
       http_listen_port: 3100
@@ -56,27 +56,26 @@ loki:
       filesystem:
         directory: /loki/chunks
 
-# Promtail Configuration (Log Agent)
+# Promtail Configuration
 promtail:
   enabled: true
   
   # Resource Configuration
   resources:
     limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
       cpu: 100m
       memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
   
-  # Configuration
+  # Configuration - simple setup
   config:
     server:
       http_listen_port: 3101
     clients:
-      - url: http://loki.logging.svc.cluster.local:3100/loki/api/v1/push
+      - url: http://loki.logging-new.svc.cluster.local:3100/loki/api/v1/push
     scrape_configs:
-      # Kubernetes Pods
       - job_name: kubernetes-pods
         kubernetes_sd_configs:
           - role: pod
@@ -87,24 +86,6 @@ promtail:
           - source_labels: [__meta_kubernetes_namespace]
             action: replace
             target_label: namespace
-          - source_labels: [__meta_kubernetes_pod_name]
-            action: replace
-            target_label: pod
-          - source_labels: [__meta_kubernetes_pod_container_name]
-            action: replace
-            target_label: container
-          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_env]
-            action: replace
-            target_label: environment
-      
-      # System Logs
-      - job_name: system
-        static_configs:
-          - targets:
-              - localhost
-            labels:
-              job: syslog
-              __path__: /var/log/syslog
 
 # Service Configuration
 service:
@@ -118,7 +99,7 @@ ingress:
 # Monitoring
 monitoring:
   selfMonitoring:
-    enabled: true
+    enabled: false
   serviceMonitor:
     enabled: true
     interval: 30s

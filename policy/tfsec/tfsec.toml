@@ -1,0 +1,43 @@
+[global]
+exclude = [
+    "AWS001", # Skip AWS-specific checks
+    "AWS002", # Skip AWS-specific checks
+    "AWS003", # Skip AWS-specific checks
+    "AWS004", # Skip AWS-specific checks
+    "AWS005", # Skip AWS-specific checks
+    "AWS006", # Skip AWS-specific checks
+    "AWS007", # Skip AWS-specific checks
+    "AWS008", # Skip AWS-specific checks
+    "AWS009", # Skip AWS-specific checks
+    "AWS010", # Skip AWS-specific checks
+]
+
+[terraform]
+exclude_paths = [
+    ".terraform/",
+    "terraform.tfstate",
+    "terraform.tfstate.backup",
+    "*.tfstate",
+    "*.tfstate.backup",
+]
+
+[kubernetes]
+exclude_paths = [
+    "kube-system/",
+    "istio-system/",
+]
+
+[custom_checks]
+path = "./custom-checks"
+
+[output]
+format = ["json", "sarif", "text"]
+colored = true
+quiet = false
+verbose = false
+
+[severity]
+threshold = "MEDIUM"
+
+[workspace]
+from_module = true

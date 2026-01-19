@@ -1,0 +1,36 @@
+name: Setup Policy Tools
+description: Install and configure policy-as-code tools
+runs:
+  using: composite
+  steps:
+    - name: Install Checkov
+      shell: bash
+      run: |
+        pip install checkov
+
+    - name: Install tfsec
+      shell: bash
+      run: |
+        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Install OPA
+      shell: bash
+      run: |
+        curl -L https://openpolicyagent.org/downloads/latest/opa_linux_amd64 -o opa
+        chmod +x opa
+        sudo mv opa /usr/local/bin
+
+    - name: Install jq
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
+    - name: Verify Tools
+      shell: bash
+      run: |
+        checkov --version
+        tfsec --version
+        opa version
+        jq --version

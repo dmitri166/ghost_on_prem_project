@@ -1,4 +1,4 @@
-# Ghost Application Service Monitors
+# Ghost Application Service Monitors (Enhanced)
 # Custom service monitors for Ghost applications and MySQL
 
 ---
@@ -7,7 +7,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: ghost-dev-metrics
-  namespace: monitoring
+  namespace: monitoring-new
   labels:
     app.kubernetes.io/name: ghost
     app.kubernetes.io/component: monitoring
@@ -32,7 +32,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: ghost-staging-metrics
-  namespace: monitoring
+  namespace: monitoring-new
   labels:
     app.kubernetes.io/name: ghost
     app.kubernetes.io/component: monitoring
@@ -57,7 +57,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: ghost-prod-metrics
-  namespace: monitoring
+  namespace: monitoring-new
   labels:
     app.kubernetes.io/name: ghost
     app.kubernetes.io/component: monitoring
@@ -82,7 +82,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: mysql-dev-metrics
-  namespace: monitoring
+  namespace: monitoring-new
   labels:
     app.kubernetes.io/name: mysql
     app.kubernetes.io/component: monitoring
@@ -107,7 +107,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: mysql-staging-metrics
-  namespace: monitoring
+  namespace: monitoring-new
   labels:
     app.kubernetes.io/name: mysql
     app.kubernetes.io/component: monitoring
@@ -132,7 +132,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: mysql-prod-metrics
-  namespace: monitoring
+  namespace: monitoring-new
   labels:
     app.kubernetes.io/name: mysql
     app.kubernetes.io/component: monitoring

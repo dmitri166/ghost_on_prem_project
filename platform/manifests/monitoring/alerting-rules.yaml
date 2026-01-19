@@ -1,0 +1,135 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ghost-app-alerts
+  namespace: ghost-platform
+  labels:
+    app: ghost-app
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: ghost-app.rules
+    rules:
+    # Application Health Alerts
+    - alert: GhostAppDown
+      expr: up{job="ghost-app"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        service: ghost-app
+      annotations:
+        summary: "Ghost application is down"
+        description: "Ghost application has been down for more than 1 minute."
+
+    - alert: GhostAppHighErrorRate
+      expr: rate(http_requests_total{job="ghost-app",status=~"5.."}[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: warning
+        service: ghost-app
+      annotations:
+        summary: "Ghost application high error rate"
+        description: "Ghost application error rate is {{ $value }} errors per second."
+
+    - alert: GhostAppHighResponseTime
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="ghost-app"}[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+        service: ghost-app
+      annotations:
+        summary: "Ghost application high response time"
+        description: "95th percentile response time is {{ $value }} seconds."
+
+    # Resource Usage Alerts
+    - alert: GhostAppHighCPUUsage
+      expr: rate(container_cpu_usage_seconds_total{pod=~"ghost-app-.*"}[5m]) > 0.8
+      for: 5m
+      labels:
+        severity: warning
+        service: ghost-app
+      annotations:
+        summary: "Ghost application high CPU usage"
+        description: "CPU usage is above 80% for more than 5 minutes."
+
+    - alert: GhostAppHighMemoryUsage
+      expr: container_memory_usage_bytes{pod=~"ghost-app-.*"} / container_spec_memory_limit_bytes{pod=~"ghost-app-.*"} > 0.9
+      for: 5m
+      labels:
+        severity: critical
+        service: ghost-app
+      annotations:
+        summary: "Ghost application high memory usage"
+        description: "Memory usage is above 90% for more than 5 minutes."
+
+    # Database Alerts
+    - alert: MySQLDown
+      expr: up{job="mysql"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        service: mysql
+      annotations:
+        summary: "MySQL database is down"
+        description: "MySQL database has been down for more than 1 minute."
+
+    - alert: MySQLHighConnections
+      expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections > 0.8
+      for: 5m
+      labels:
+        severity: warning
+        service: mysql
+      annotations:
+        summary: "MySQL high connection count"
+        description: "MySQL connection usage is {{ $value | humanizePercentage }}."
+
+    - alert: MySQLSlowQueries
+      expr: rate(mysql_global_status_slow_queries[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: warning
+        service: mysql
+      annotations:
+        summary: "MySQL slow queries detected"
+        description: "MySQL slow query rate is {{ $value }} queries per second."
+
+    # Infrastructure Alerts
+    - alert: NodeDiskUsageHigh
+      expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes > 0.85
+      for: 5m
+      labels:
+        severity: warning
+        service: infrastructure
+      annotations:
+        summary: "Node disk usage high"
+        description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}."
+
+    - alert: NodeMemoryUsageHigh
+      expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+      for: 5m
+      labels:
+        severity: critical
+        service: infrastructure
+      annotations:
+        summary: "Node memory usage high"
+        description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}."
+
+    - alert: PodCrashLooping
+      expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+        service: kubernetes
+      annotations:
+        summary: "Pod is crash looping"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping."
+
+    - alert: KubernetesNodeNotReady
+      expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+      for: 10m
+      labels:
+        severity: critical
+        service: kubernetes
+      annotations:
+        summary: "Kubernetes node not ready"
+        description: "Node {{ $labels.node }} has been not ready for more than 10 minutes."
