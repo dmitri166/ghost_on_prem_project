@@ -26,10 +26,3 @@ resource "null_resource" "wait_for_cluster" {
     command = "k3d kubeconfig merge ${local.cluster_name} --output kubeconfig.yaml && kubectl --kubeconfig=kubeconfig.yaml wait --for=condition=Ready nodes --all --timeout=300s"
   }
 }
-
-# Create and save kubeconfig (use k3d-generated config)
-resource "local_file" "kubeconfig" {
-  filename = "${path.module}/kubeconfig.yaml"
-  
-  depends_on = [null_resource.wait_for_cluster]
-}
