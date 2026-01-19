@@ -14,14 +14,7 @@ locals {
 # Create k3d cluster using local-exec (since k3d provider is not available)
 resource "null_resource" "create_cluster" {
   provisioner "local-exec" {
-    command = <<-EOT
-      k3d cluster create ${local.cluster_name} \
-        --servers ${local.master_nodes} \
-        --agents ${local.worker_nodes} \
-        --image ${local.k3s_version} \
-        --port ${local.api_port} \
-        --network k3d-${local.cluster_name}-net
-    EOT
+    command = "k3d cluster create ${local.cluster_name} --servers ${local.master_nodes} --agents ${local.worker_nodes} --image ${local.k3s_version} --port ${local.api_port} --network k3d-${local.cluster_name}-net"
   }
 }
 
@@ -30,10 +23,7 @@ resource "null_resource" "wait_for_cluster" {
   depends_on = [null_resource.create_cluster]
   
   provisioner "local-exec" {
-    command = <<-EOT
-      k3d kubeconfig merge ${local.cluster_name} > kubeconfig.yaml
-      kubectl --kubeconfig=kubeconfig.yaml wait --for=condition=Ready nodes --all --timeout=300s
-    EOT
+    command = "k3d kubeconfig merge ${local.cluster_name} > kubeconfig.yaml && kubectl --kubeconfig=kubeconfig.yaml wait --for=condition=Ready nodes --all --timeout=300s"
   }
 }
 
