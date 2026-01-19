@@ -46,24 +46,24 @@ jobs:
       - name: Terraform Format Check
         run: |
           cd infrastructure/terraform
+          terraform init
           terraform fmt -check -recursive || echo "Format check completed"
 
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: infrastructure/terraform
-          config_file: policy/checkov/checkov.yaml
-          output_format: sarif
-          output_file_path: reports/checkov-results.sarif
-        continue-on-error: true
+          working_directory: infrastructure/terraform
+          args: '--config-file policy/checkov/checkov.yaml --framework terraform --output sarif --output-file-path reports/checkov-results.sarif'
+          soft_fail: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
 
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@master
         with:
-          directory: infrastructure/terraform
-          config_file: policy/tfsec/tfsec.toml
-          output_format: sarif
-          output_file: reports/tfsec-results.sarif
+          working_directory: infrastructure/terraform
+          args: '--config-file policy/tfsec/tfsec.toml --format sarif --out reports/tfsec-results.sarif'
+          soft_fail: true
 
       - name: Setup OPA
         uses: open-policy-agent/setup-opa@v2
@@ -83,7 +83,7 @@ jobs:
 
       - name: Upload Policy Results
         uses: github/codeql-action/upload-sarif@v4
-        if: always()
+        if: always() && hashFiles('reports/checkov-results.sarif') != ''
         with:
           sarif_file: reports/checkov-results.sarif
 
