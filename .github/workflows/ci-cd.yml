@@ -98,7 +98,7 @@ jobs:
           sarif_file: reports/checkov-results.sarif
 
   # Infrastructure Plan (for PRs)
-  terraform-plan:
+  terraform-plan-pr:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     needs: policy-validation
