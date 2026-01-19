@@ -40,7 +40,25 @@ resource "null_resource" "wait_for_cluster" {
 # Create and save kubeconfig
 resource "local_file" "kubeconfig" {
   content  = <<-EOT
-    $(k3d kubeconfig get ${local.cluster_name})
+    apiVersion: v1
+    clusters:
+    - cluster:
+        certificate-authority-data: ""
+        server: https://localhost:6443
+      name: ${local.cluster_name}
+    contexts:
+    - context:
+        cluster: ${local.cluster_name}
+        user: ${local.cluster_name}
+      name: ${local.cluster_name}
+    current-context: ${local.cluster_name}
+    kind: Config
+    preferences: {}
+    users:
+    - name: ${local.cluster_name}
+      user:
+        client-certificate-data: ""
+        client-key-data: ""
   EOT
   filename = "${path.module}/kubeconfig.yaml"
   
