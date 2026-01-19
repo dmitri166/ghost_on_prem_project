@@ -87,7 +87,6 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ~>1.5.0
-          cli_config_credentials_token: ""
 
       - name: Terraform Init
         run: |
@@ -163,7 +162,6 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ~>1.5.0
-          cli_config_credentials_token: ""
 
       - name: Terraform Init
         run: |
@@ -318,7 +316,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPO_TOKEN }}
 
       - name: Update image tags in Helm values
         run: |
