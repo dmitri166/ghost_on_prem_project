@@ -1,46 +1,14 @@
-terraform {
-  required_version = ">= 1.5.0"
-  required_providers {
-    k3d = {
-      source  = "k3d-io/k3d"
-      version = "~> 0.7"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.23"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.11"
-    }
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.4"
-    }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.2"
-    }
-  }
-}
-
 # Local values for configuration
 locals {
-  cluster_name = "ghost-k3d"
-  k3s_version  = "v1.28.3+k3s.1"
-  
-  # Network configuration
-  cluster_cidr = "10.42.0.0/16"
-  service_cidr = "10.43.0.0/16"
-  
-  # Node configuration for 1 master + 2 workers
-  master_nodes = 1
-  worker_nodes = 2
-  
-  # Ports configuration
-  api_port    = 6443
-  http_port   = 80
-  https_port  = 443
+  cluster_name   = "ghost-k3d"
+  k3s_version    = "rancher/k3s:v1.28.8-k3s2"
+  master_nodes   = 1
+  worker_nodes   = 2
+  cluster_cidr   = "10.42.0.0/16"
+  service_cidr   = "10.43.0.0/16"
+  api_port       = 6443
+  http_port      = 80
+  https_port     = 443
 }
 
 # Create k3d cluster with 1 master + 2 workers
