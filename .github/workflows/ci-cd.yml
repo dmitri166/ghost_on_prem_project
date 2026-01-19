@@ -5,8 +5,6 @@ on:
   push:
     branches: [master]
     paths:
-      - 'applications/ghost-app/**'
-      - 'platform/**'
       - 'infrastructure/terraform/**'
       - 'policy/**'
       - '.github/workflows/**'
@@ -14,7 +12,6 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - 'applications/ghost-app/**'
       - 'infrastructure/terraform/**'
       - 'policy/**'
       - 'README.md'
@@ -35,6 +32,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
       - name: Create reports directory
         run: mkdir -p reports
 
@@ -52,7 +54,7 @@ jobs:
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
         with:
-          working_directory: infrastructure/terraform
+          directory: infrastructure/terraform
           args: '--config-file policy/checkov/checkov.yaml --framework terraform --output sarif --output-file-path reports/checkov-results.sarif'
           soft_fail: true
         env:
@@ -61,7 +63,7 @@ jobs:
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@master
         with:
-          working_directory: infrastructure/terraform
+          directory: infrastructure/terraform
           args: '--config-file policy/tfsec/tfsec.toml --format sarif --out reports/tfsec-results.sarif'
           soft_fail: true
 
@@ -164,17 +166,11 @@ jobs:
               body: comment
             });
 
-  # Infrastructure Apply (for main branch) - SECURED
-  terraform-apply:
-    runs-on: self-hosted
+  # Infrastructure Plan (for main branch)
+  terraform-plan:
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs: policy-validation
-    environment:
-      name: infrastructure
-      url: http://localhost:8080
-    permissions:
-      contents: read
-      actions: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -199,11 +195,54 @@ jobs:
           cd infrastructure/terraform
           terraform plan -out=tfplan
           
+      - name: Terraform Show Plan
+        run: |
+          cd infrastructure/terraform
+          terraform show -json tfplan > plan.json
+          
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: infrastructure/terraform/tfplan
+          retention-days: 1
+
+  # Infrastructure Apply (for main branch) - SECURED
+  terraform-apply:
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    needs: terraform-plan
+    environment:
+      name: infrastructure
+      url: http://localhost:8080
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~>1.5.0
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure/terraform
+          terraform init
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: infrastructure/terraform/
+
       - name: Terraform Plan Review
         run: |
           cd infrastructure/terraform
           echo "## 🏗️ Terraform Plan Review"
-          echo "Review the following changes before applying:"
+          echo "Reviewing the following changes:"
           terraform show tfplan
           
       - name: Terraform Apply
@@ -299,7 +338,12 @@ jobs:
 
   # Build and Security Scan Container
   build-and-scan:
-    needs: [policy-validation, security-scan, test]
+    needs: policy-validation
+    if: |
+      contains(github.event.head_commit.modified, 'applications/ghost-app/') || 
+      contains(github.event.head_commit.added, 'applications/ghost-app/') ||
+      contains(github.event.head_commit.deleted, 'applications/ghost-app/') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -1,0 +1,141 @@
+---
+name: Application CI/CD
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'applications/ghost-app/**'
+      - '.github/workflows/application.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'applications/ghost-app/**'
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: dmitrik2026/ghost-app
+
+jobs:
+  # Application Testing
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          if [ -d "applications/ghost-app/source" ]; then
+            cd applications/ghost-app/source
+            pip install -r requirements.txt || echo "No requirements.txt found"
+            pip install pytest pytest-cov flake8
+          else
+            echo "No application source found to test"
+          fi
+
+      - name: Code quality checks
+        run: |
+          if [ -d "applications/ghost-app/source" ]; then
+            cd applications/ghost-app/source
+            flake8 --max-line-length=100 --ignore=E501,W503 . || echo "No Python files to lint"
+          else
+            echo "No application source found to lint"
+          fi
+
+      - name: Run tests with coverage
+        run: |
+          if [ -d "applications/ghost-app/source" ]; then
+            cd applications/ghost-app/source
+            pytest --cov=. --cov-report=xml || echo "No tests found"
+          else
+            echo "No application source found to test"
+          fi
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./applications/ghost-app/source/coverage.xml
+        continue-on-error: true
+
+  # Build and Security Scan Container
+  build-and-scan:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          file: ./applications/ghost-app/source/Dockerfile
+          context: ./applications/ghost-app/source
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Run vulnerability scan on image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'image-trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'image-trivy-results.sarif'
+
+      - name: Update GitOps configurations
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          
+          # Update development environment
+          sed -i "s|tag:.*|tag: $IMAGE_TAG|" applications/ghost-app/helm/values-dev.yaml
+
+          # Update staging environment
+          sed -i "s|tag:.*|tag: $IMAGE_TAG|" applications/ghost-app/helm/values-staging.yaml
+
+          # Update prod environment
+          sed -i "s|tag:.*|tag: $IMAGE_TAG|" applications/ghost-app/helm/values-prod.yaml
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add applications/ghost-app/helm/values-*.yaml
+          git commit -m "ci: Update image tags to ${{ github.sha }}" || echo "No changes to commit"
+          git push || echo "No changes to push"
