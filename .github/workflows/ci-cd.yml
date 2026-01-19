@@ -1,20 +1,23 @@
+---
 name: Enhanced CI/CD Pipeline
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
     paths:
       - 'applications/ghost-app/**'
       - 'platform/**'
       - 'infrastructure/terraform/**'
       - 'policy/**'
       - '.github/workflows/**'
+      - 'README.md'
   pull_request:
-    branches: [ master ]
+    branches: [master]
     paths:
       - 'applications/ghost-app/**'
       - 'infrastructure/terraform/**'
       - 'policy/**'
+      - 'README.md'
 
 env:
   REGISTRY: docker.io
@@ -63,7 +66,7 @@ jobs:
         run: |
           cd infrastructure/terraform
           terraform show -json > terraform.json
-          opa eval -d policy/opa -i terraform.json "data.ghost_platform.terraform.deny" --format=pretty
+          opa eval -d policy/opa -i terraform.json "data.ghost_platform.terraform.deny"
 
       - name: Upload Policy Results
         uses: github/codeql-action/upload-sarif@v2
@@ -115,25 +118,25 @@ jobs:
             const fs = require('fs');
             const plan = fs.readFileSync('infrastructure/terraform/plan.json', 'utf8');
             const planSummary = JSON.parse(plan);
-            
+
             const comment = `## 🏗️ Terraform Plan Summary
-            
+
             **Changes detected:**
             - Additions: ${planSummary.resource_changes?.filter(r => r.change.actions.includes('create')).length || 0}
             - Modifications: ${planSummary.resource_changes?.filter(r => r.change.actions.includes('update')).length || 0}
             - Deletions: ${planSummary.resource_changes?.filter(r => r.change.actions.includes('delete')).length || 0}
-            
+
             <details>
             <summary>📋 Full Plan Details</summary>
-            
+
             \`\`\`hcl
             ${planSummary.planned_values ? JSON.stringify(planSummary.planned_values, null, 2) : 'No changes detected'}
             \`\`\`
             </details>
-            
+
             ---
             *This plan was generated automatically for PR #${{ github.event.number }}*`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -146,7 +149,7 @@ jobs:
     runs-on: self-hosted
     if: github.ref == 'refs/heads/master' && github.event_name == 'push' && github.actor == 'dmitri166'
     needs: policy-validation
-    environment: 
+    environment:
       name: infrastructure
       url: http://localhost:8080
     permissions:
@@ -301,32 +304,32 @@ jobs:
           format: 'sarif'
           output: 'image-trivy-results.sarif'
 
-      - name: Upload image scan results
+      - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'image-trivy-results.sarif'
 
-  # Update GitOps Configuration
+  # Update GitOps configurations
   update-gitops:
-    needs: [build-and-scan, terraform-apply]
+    needs: [terraform-apply, build-and-scan]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update image tags in GitOps
+      - name: Update image tags in Helm values
         run: |
-          IMAGE_TAG=${{ github.sha }}
+          IMAGE_TAG="${{ github.sha }}"
           
-          # Update dev environment
+          # Update development environment
           sed -i "s|tag:.*|tag: $IMAGE_TAG|" applications/ghost-app/helm/values-dev.yaml
-          
-          # Update staging environment  
+
+          # Update staging environment
           sed -i "s|tag:.*|tag: $IMAGE_TAG|" applications/ghost-app/helm/values-staging.yaml
-          
+
           # Update prod environment
           sed -i "s|tag:.*|tag: $IMAGE_TAG|" applications/ghost-app/helm/values-prod.yaml
 
@@ -343,7 +346,7 @@ jobs:
     needs: update-gitops
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
-    environment: 
+    environment:
       name: development
       url: http://ghost-dev.local
     steps:
@@ -358,7 +361,7 @@ jobs:
     needs: update-gitops
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
-    environment: 
+    environment:
       name: staging
       url: http://ghost-staging.local
     steps:
@@ -373,7 +376,7 @@ jobs:
     needs: deploy-staging
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
-    environment: 
+    environment:
       name: production
       url: http://ghost-prod.local
     steps:
@@ -382,17 +385,3 @@ jobs:
           echo "🚀 Deploying to production environment"
           echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           echo "ArgoCD will automatically sync this change"
-
-  # Post-deployment Tests
-  smoke-test:
-    needs: [deploy-dev, deploy-staging]
-    runs-on: ubuntu-latest
-    if: always() && (needs.deploy-dev.result == 'success' || needs.deploy-staging.result == 'success')
-    steps:
-      - name: Smoke tests
-        run: |
-          echo "🧪 Running smoke tests..."
-          echo "Testing application health endpoints"
-          echo "Verifying WebSocket connections"
-          echo "Checking database connectivity"
-          echo "✅ All smoke tests passed"
