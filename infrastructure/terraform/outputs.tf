@@ -1,21 +1,21 @@
 output "cluster_name" {
   description = "The name of the k3d cluster"
-  value       = k3d_cluster.main.name
+  value       = local.cluster_name
 }
 
 output "kube_config_path" {
-  description = "Path to the kubeconfig file"
+  description = "Path to kubeconfig file"
   value       = local_file.kubeconfig.filename
 }
 
 output "cluster_endpoint" {
   description = "The Kubernetes API endpoint"
-  value       = k3d_cluster.main.endpoint
+  value       = "https://localhost:6443"
 }
 
 output "cluster_version" {
   description = "The k3s version"
-  value       = k3d_cluster.main.image
+  value       = local.k3s_version
 }
 
 output "master_nodes" {

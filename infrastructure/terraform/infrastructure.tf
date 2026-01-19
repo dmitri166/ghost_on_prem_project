@@ -1,16 +1,12 @@
 # Kubernetes provider configuration
 provider "kubernetes" {
-  host                   = k3d_cluster.main.endpoint
-  cluster_ca_certificate = base64decode(k3d_cluster.main.cluster_ca_certificate)
-  token                  = k3d_cluster.main.token
+  config_path = "${path.module}/kubeconfig.yaml"
 }
 
 # Helm provider configuration
 provider "helm" {
   kubernetes {
-    host                   = k3d_cluster.main.endpoint
-    cluster_ca_certificate = base64decode(k3d_cluster.main.cluster_ca_certificate)
-    token                  = k3d_cluster.main.token
+    config_path = "${path.module}/kubeconfig.yaml"
   }
 }
 
