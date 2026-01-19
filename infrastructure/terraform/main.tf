@@ -11,77 +11,38 @@ locals {
   https_port     = 443
 }
 
-# Create k3d cluster with 1 master + 2 workers
-resource "k3d_cluster" "main" {
-  name    = local.cluster_name
-  image   = local.k3s_version
-  servers = local.master_nodes
-  agents  = local.worker_nodes
-  
-  # Network configuration
-  network {
-    name = "k3d-${local.cluster_name}-net"
+# Create k3d cluster using local-exec (since k3d provider is not available)
+resource "null_resource" "create_cluster" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      k3d cluster create ${local.cluster_name} \
+        --servers ${local.master_nodes} \
+        --agents ${local.worker_nodes} \
+        --image ${local.k3s_version} \
+        --port ${local.api_port} \
+        --network k3d-${local.cluster_name}-net
+    EOT
   }
+}
+
+# Wait for cluster to be ready
+resource "null_resource" "wait_for_cluster" {
+  depends_on = [null_resource.create_cluster]
   
-  # Port mapping for external access
-  ports {
-    host_port      = local.api_port
-    container_port = 6443
-    node_filters   = ["server:*"]
-  }
-  
-  ports {
-    host_port      = local.http_port
-    container_port = 80
-    node_filters   = ["server:*"]
-  }
-  
-  ports {
-    host_port      = local.https_port
-    container_port = 443
-    node_filters   = ["server:*"]
-  }
-  
-  # Kubeconfig configuration
-  kubeconfig {
-    update_default_kubeconfig = false
-    switch_current_context     = false
-  }
-  
-  # Disable built-in services (will be managed by ArgoCD)
-  k3s_args {
-    node_filters = ["server:*"]
-    arguments   = [
-      "--disable=traefik",
-      "--disable=servicelb",
-      "--disable=metrics-server",
-      "--kubelet-arg=container-log-max-size=10M",
-      "--kubelet-arg=container-log-max-files=3",
-      "--write-kubeconfig-mode=644"
-    ]
-  }
-  
-  # Labels for cluster identification
-  labels = {
-    "environment" = "development"
-    "managed-by" = "terraform"
-    "project"    = "ghost-platform"
+  provisioner "local-exec" {
+    command = <<-EOT
+      k3d kubeconfig merge ${local.cluster_name} > kubeconfig.yaml
+      kubectl --kubeconfig=kubeconfig.yaml wait --for=condition=Ready nodes --all --timeout=300s
+    EOT
   }
 }
 
 # Create and save kubeconfig
 resource "local_file" "kubeconfig" {
-  content  = k3d_cluster.main.kubeconfig_raw
+  content  = <<-EOT
+    $(k3d kubeconfig get ${local.cluster_name})
+  EOT
   filename = "${path.module}/kubeconfig.yaml"
   
-  depends_on = [k3d_cluster.main]
-}
-
-# Wait for cluster to be ready
-resource "null_resource" "wait_for_cluster" {
-  depends_on = [k3d_cluster.main]
-  
-  provisioner "local-exec" {
-    command = "kubectl --kubeconfig=${local_file.kubeconfig.filename} wait --for=condition=Ready nodes --all --timeout=300s"
-  }
+  depends_on = [null_resource.create_cluster]
 }
