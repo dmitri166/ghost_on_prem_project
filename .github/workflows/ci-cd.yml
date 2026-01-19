@@ -52,7 +52,7 @@ jobs:
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: infrastructure/terraform
+          working_directory: infrastructure/terraform
           args: '--config-file policy/checkov/checkov.yaml --framework terraform --output sarif --output-file-path reports/checkov-results.sarif'
           soft_fail: true
         env:
@@ -61,7 +61,7 @@ jobs:
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@master
         with:
-          directory: infrastructure/terraform
+          working_directory: infrastructure/terraform
           args: '--config-file policy/tfsec/tfsec.toml --format sarif --out reports/tfsec-results.sarif'
           soft_fail: true
 
@@ -167,7 +167,7 @@ jobs:
   # Infrastructure Apply (for main branch) - SECURED
   terraform-apply:
     runs-on: self-hosted
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push' && github.actor == 'dmitri166'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs: policy-validation
     environment:
       name: infrastructure
@@ -198,7 +198,14 @@ jobs:
         run: |
           cd infrastructure/terraform
           terraform plan -out=tfplan
-
+          
+      - name: Terraform Plan Review
+        run: |
+          cd infrastructure/terraform
+          echo "## 🏗️ Terraform Plan Review"
+          echo "Review the following changes before applying:"
+          terraform show tfplan
+          
       - name: Terraform Apply
         run: |
           cd infrastructure/terraform
@@ -213,7 +220,7 @@ jobs:
           echo "📁 Kubeconfig: $(terraform output -raw kube_config_path)"
 
       - name: Upload Kubeconfig
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kubeconfig
           path: infrastructure/terraform/kubeconfig.yaml
@@ -410,7 +417,7 @@ jobs:
 
   # Deploy to Production (Manual Approval)
   deploy-prod:
-    needs: deploy-staging
+    needs: update-gitops
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     environment:
