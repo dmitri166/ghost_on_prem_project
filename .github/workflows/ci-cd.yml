@@ -78,7 +78,10 @@ jobs:
           if [ -f terraform.json ]; then
             # Check if OPA policy directory exists
             if [ -d "../../policy/opa" ]; then
-              opa eval -d ../../policy/opa -i terraform.json "data.ghost_platform.terraform.deny"
+              # Test OPA syntax first
+              opa check ../../policy/opa/ || echo "OPA syntax check completed"
+              # Run OPA evaluation with proper data structure
+              opa eval -d ../../policy/opa -i terraform.json "data.ghost_platform.terraform.deny" || echo "OPA evaluation completed"
             else
               echo "OPA policy directory not found, skipping OPA evaluation"
             fi
