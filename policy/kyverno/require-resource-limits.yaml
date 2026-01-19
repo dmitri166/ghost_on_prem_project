@@ -1,0 +1,27 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+  annotations:
+    policies.kyverno.io/title: "Require Resource Limits"
+    policies.kyverno.io/category: "Resource Management"
+    policies.kyverno.io/severity: "medium"
+spec:
+  validationFailureAction: enforce
+  rules:
+  - name: check-resources
+    match:
+      any:
+        - resources:
+            kinds:
+              - Pod
+    validate:
+      pattern:
+        any:
+          - pattern:
+              spec:
+                containers:
+                  - =(resources):
+                      =(limits): "?*"
+    message: "Resource limits are required for all containers"

@@ -1,0 +1,26 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-secure-images
+  annotations:
+    policies.kyverno.io/title: "Require Secure Container Images"
+    policies.kyverno.io/category: "Security"
+    policies.kyverno.io/severity: "high"
+spec:
+  validationFailureAction: enforce
+  rules:
+  - name: require-secure-images
+    match:
+      any:
+        - resources:
+            kinds:
+              - Pod
+    validate:
+      pattern:
+        any:
+          - pattern:
+              spec:
+                containers:
+                  - =(image): "ghcr.io/*|docker.io/*:*"
+    message: "Container images must use secure registries and specific tags"

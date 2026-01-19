@@ -14,15 +14,7 @@ locals {
 # Create k3d cluster using local-exec (since k3d provider is not available)
 resource "null_resource" "create_cluster" {
   provisioner "local-exec" {
-    command = <<-EOT
-      # Check if cluster already exists
-      if ! k3d cluster list | grep -q "${local.cluster_name}"; then
-        echo "Creating new cluster ${local.cluster_name}"
-        k3d cluster create ${local.cluster_name} --servers ${local.master_nodes} --agents ${local.worker_nodes} --image ${local.k3s_version} --port ${local.api_port} --network k3d-${local.cluster_name}-net
-      else
-        echo "Cluster ${local.cluster_name} already exists, skipping creation"
-      fi
-    EOT
+    command = "if ! k3d cluster list | grep -q '${local.cluster_name}'; then k3d cluster create ${local.cluster_name} --servers ${local.master_nodes} --agents ${local.worker_nodes} --image ${local.k3s_version} --port ${local.api_port} --network k3d-${local.cluster_name}-net; else echo 'Cluster ${local.cluster_name} already exists, skipping creation'; fi"
   }
 }
 
