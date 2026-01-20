@@ -111,17 +111,22 @@ jobs:
           echo "Setting up k3d and creating kubeconfig..."
           # Install k3d
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Best Practice: Create cluster if doesn't exist, upgrade if exists
-          if ! k3d cluster list | grep -q 'ghost-k3d'; then
-            echo "Creating new ghost-k3d cluster..."
-            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
-          else
-            echo "Cluster ghost-k3d already exists, using existing cluster"
-          fi
-          # Best Practice: Use kubeconfig merge for complete configuration
+          # Debug: Check if cluster exists
+          echo "Available clusters:"
+          k3d cluster list
+          # Debug: Verify cluster access
+          echo "Cluster info for ghost-k3d:"
+          k3d cluster info ghost-k3d
+          # Create kubeconfig with verification
+          cd infrastructure/terraform
+          echo "Creating kubeconfig in: $(pwd)"
           k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
-          echo "Kubeconfig created successfully!"
+          # Verify file was created
+          echo "Kubeconfig file created successfully!"
           ls -la kubeconfig.yaml
+          # Debug: Show kubeconfig content (first 5 lines)
+          echo "Kubeconfig content (first 5 lines):"
+          head -5 kubeconfig.yaml
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -197,17 +202,22 @@ jobs:
           echo "Setting up k3d and creating kubeconfig..."
           # Install k3d
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Best Practice: Create cluster if doesn't exist, upgrade if exists
-          if ! k3d cluster list | grep -q 'ghost-k3d'; then
-            echo "Creating new ghost-k3d cluster..."
-            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
-          else
-            echo "Cluster ghost-k3d already exists, using existing cluster"
-          fi
-          # Best Practice: Use kubeconfig merge for complete configuration
+          # Debug: Check if cluster exists
+          echo "Available clusters:"
+          k3d cluster list
+          # Debug: Verify cluster access
+          echo "Cluster info for ghost-k3d:"
+          k3d cluster info ghost-k3d
+          # Create kubeconfig with verification
+          cd infrastructure/terraform
+          echo "Creating kubeconfig in: $(pwd)"
           k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
-          echo "Kubeconfig created successfully!"
+          # Verify file was created
+          echo "Kubeconfig file created successfully!"
           ls -la kubeconfig.yaml
+          # Debug: Show kubeconfig content (first 5 lines)
+          echo "Kubeconfig content (first 5 lines):"
+          head -5 kubeconfig.yaml
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -266,17 +276,22 @@ jobs:
           echo "Setting up k3d and creating kubeconfig..."
           # Install k3d
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Best Practice: Create cluster if doesn't exist, upgrade if exists
-          if ! k3d cluster list | grep -q 'ghost-k3d'; then
-            echo "Creating new ghost-k3d cluster..."
-            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
-          else
-            echo "Cluster ghost-k3d already exists, using existing cluster"
-          fi
-          # Best Practice: Use kubeconfig merge for complete configuration
+          # Debug: Check if cluster exists
+          echo "Available clusters:"
+          k3d cluster list
+          # Debug: Verify cluster access
+          echo "Cluster info for ghost-k3d:"
+          k3d cluster info ghost-k3d
+          # Create kubeconfig with verification
+          cd infrastructure/terraform
+          echo "Creating kubeconfig in: $(pwd)"
           k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
-          echo "Kubeconfig created successfully!"
+          # Verify file was created
+          echo "Kubeconfig file created successfully!"
           ls -la kubeconfig.yaml
+          # Debug: Show kubeconfig content (first 5 lines)
+          echo "Kubeconfig content (first 5 lines):"
+          head -5 kubeconfig.yaml
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
