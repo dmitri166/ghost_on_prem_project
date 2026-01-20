@@ -4,9 +4,23 @@ provider "kubernetes" {
   alias = "after_cluster"
 }
 
+# Reference existing namespaces (best practice for existing clusters)
+data "kubernetes_namespace" "infrastructure" {
+  metadata {
+    name = "infrastructure"
+  }
+}
+
+data "kubernetes_namespace" "argocd" {
+  metadata {
+    name = "argocd"
+  }
+}
+
 # Create infrastructure namespaces (managed by Terraform)
 resource "kubernetes_namespace" "infrastructure" {
   provider = kubernetes.after_cluster
+  depends_on = [data.kubernetes_namespace.infrastructure]
   metadata {
     name = "infrastructure"
     labels = {
@@ -20,6 +34,7 @@ resource "kubernetes_namespace" "infrastructure" {
 
 resource "kubernetes_namespace" "argocd" {
   provider = kubernetes.after_cluster
+  depends_on = [data.kubernetes_namespace.argocd]
   metadata {
     name = "argocd"
     labels = {
