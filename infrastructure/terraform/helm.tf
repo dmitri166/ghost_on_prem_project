@@ -1,7 +1,7 @@
 # Helm provider configuration
 provider "helm" {
   kubernetes {
-    config_path = "kubeconfig.yaml"
+    config_path = "${path.cwd}/kubeconfig.yaml"
   }
   alias = "after_cluster"
 }
@@ -20,7 +20,7 @@ resource "helm_release" "kyverno" {
     ignore_changes = all
   }
   
-  depends_on = [null_resource.cleanup_helm]
+  depends_on = [null_resource.check_kyverno]
 }
 
 # Apply Kyverno policies after installation

@@ -27,11 +27,11 @@ resource "null_resource" "wait_for_cluster" {
   }
 }
 
-# Clean up any existing Helm release
-resource "null_resource" "cleanup_helm" {
+# Check if Kyverno is already installed
+resource "null_resource" "check_kyverno" {
   depends_on = [null_resource.wait_for_cluster]
   
   provisioner "local-exec" {
-    command = "KUBECONFIG=kubeconfig.yaml helm uninstall kyverno -n kyverno-system 2>/dev/null || echo 'No existing Kyverno release to cleanup'"
+    command = "KUBECONFIG=kubeconfig.yaml helm list -n kyverno-system | grep -q kyverno && echo 'Kyverno already installed, will upgrade' || echo 'Kyverno not installed, will install fresh'"
   }
 }
