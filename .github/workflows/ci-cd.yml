@@ -118,9 +118,8 @@ jobs:
           else
             echo "Cluster ghost-k3d already exists, using existing cluster"
           fi
-          # Best Practice: Create kubeconfig before Terraform initialization
-          cd infrastructure/terraform
-          k3d kubeconfig get ghost-k3d > kubeconfig.yaml
+          # Best Practice: Use kubeconfig merge for complete configuration
+          k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
           echo "Kubeconfig created successfully!"
           ls -la kubeconfig.yaml
 
@@ -205,9 +204,8 @@ jobs:
           else
             echo "Cluster ghost-k3d already exists, using existing cluster"
           fi
-          # Best Practice: Create kubeconfig before Terraform initialization
-          cd infrastructure/terraform
-          k3d kubeconfig get ghost-k3d > kubeconfig.yaml
+          # Best Practice: Use kubeconfig merge for complete configuration
+          k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
           echo "Kubeconfig created successfully!"
           ls -la kubeconfig.yaml
 
@@ -275,9 +273,8 @@ jobs:
           else
             echo "Cluster ghost-k3d already exists, using existing cluster"
           fi
-          # Best Practice: Create kubeconfig before Terraform initialization
-          cd infrastructure/terraform
-          k3d kubeconfig get ghost-k3d > kubeconfig.yaml
+          # Best Practice: Use kubeconfig merge for complete configuration
+          k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
           echo "Kubeconfig created successfully!"
           ls -la kubeconfig.yaml
 
