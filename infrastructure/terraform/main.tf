@@ -32,7 +32,7 @@ resource "null_resource" "wait_for_cluster" {
   depends_on = [null_resource.create_cluster]
   
   provisioner "local-exec" {
-    command = "echo 'Kubeconfig ready:' && ls -la kubeconfig.yaml"
+    command = "echo 'Checking cluster status...' && KUBECONFIG=kubeconfig.yaml kubectl cluster-info && echo 'Cluster is accessible and ready!'"
   }
 }
 

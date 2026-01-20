@@ -7,7 +7,7 @@ provider "kubernetes" {
 # Create infrastructure namespaces (managed by Terraform)
 resource "kubernetes_namespace" "infrastructure" {
   provider = kubernetes.after_cluster
-  depends_on = [null_resource.create_kubeconfig]
+  depends_on = [null_resource.wait_for_cluster]
   metadata {
     name = "infrastructure"
     labels = {
@@ -21,7 +21,7 @@ resource "kubernetes_namespace" "infrastructure" {
 
 resource "kubernetes_namespace" "argocd" {
   provider = kubernetes.after_cluster
-  depends_on = [null_resource.create_kubeconfig]
+  depends_on = [null_resource.wait_for_cluster]
   metadata {
     name = "argocd"
     labels = {

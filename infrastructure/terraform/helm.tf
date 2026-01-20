@@ -20,7 +20,7 @@ resource "helm_release" "kyverno" {
     ignore_changes = all
   }
   
-  depends_on = [null_resource.create_kubeconfig]
+  depends_on = [null_resource.wait_for_cluster]
 }
 
 # Apply Kyverno policies after installation
