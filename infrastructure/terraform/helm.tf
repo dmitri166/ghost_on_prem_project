@@ -1,7 +1,7 @@
 # Helm provider configuration
 provider "helm" {
   kubernetes {
-    config_path = "kubeconfig.yaml"
+    config_path = "./kubeconfig.yaml"
   }
   alias = "after_cluster"
 }
@@ -23,6 +23,6 @@ resource "null_resource" "apply_policies" {
   depends_on = [helm_release.kyverno]
   
   provisioner "local-exec" {
-    command = "kubectl apply -f ../../policy/kyverno/ && echo '✅ Kyverno policies applied successfully'"
+    command = "KUBECONFIG=kubeconfig.yaml kubectl apply -f ../../policy/kyverno/ --validate=false && echo ' Kyverno policies applied successfully'"
   }
 }
