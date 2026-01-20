@@ -7,6 +7,7 @@ provider "kubernetes" {
 # Create infrastructure namespaces (managed by Terraform)
 resource "kubernetes_namespace" "infrastructure" {
   provider = kubernetes.after_cluster
+  depends_on = [local_file.kubeconfig_marker]
   metadata {
     name = "infrastructure"
     labels = {
@@ -20,6 +21,7 @@ resource "kubernetes_namespace" "infrastructure" {
 
 resource "kubernetes_namespace" "argocd" {
   provider = kubernetes.after_cluster
+  depends_on = [local_file.kubeconfig_marker]
   metadata {
     name = "argocd"
     labels = {
