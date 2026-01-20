@@ -14,9 +14,6 @@ resource "helm_release" "kyverno" {
   chart      = "kyverno"
   namespace  = "kyverno-system"
   create_namespace = true
-  set {
-    name = "kyverno"
-  }
   
   depends_on = [null_resource.wait_for_cluster]
 }
