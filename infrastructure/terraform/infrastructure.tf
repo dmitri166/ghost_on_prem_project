@@ -1,6 +1,6 @@
 # Kubernetes provider configuration
 provider "kubernetes" {
-  config_path = "${path.module}/kubeconfig.yaml"
+  config_path = "kubeconfig.yaml"
   alias = "after_cluster"
 }
 

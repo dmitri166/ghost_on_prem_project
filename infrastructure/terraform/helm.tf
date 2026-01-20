@@ -1,7 +1,7 @@
 # Helm provider configuration
 provider "helm" {
   kubernetes {
-    config_path = "${path.module}/kubeconfig.yaml"
+    config_path = "kubeconfig.yaml"
   }
   alias = "after_cluster"
 }
@@ -28,7 +28,7 @@ resource "null_resource" "apply_policies" {
   depends_on = [helm_release.kyverno]
   
   provisioner "local-exec" {
-    command = "KUBECONFIG=${path.module}/kubeconfig.yaml kubectl apply -f ../../policy/kyverno/ --validate=false && echo ' Kyverno policies applied successfully'"
+    command = "KUBECONFIG=kubeconfig.yaml kubectl apply -f ../../policy/kyverno/ --validate=false && echo ' Kyverno policies applied successfully'"
   }
 }
 
@@ -37,28 +37,6 @@ resource "null_resource" "verify_kyverno" {
   depends_on = [null_resource.apply_policies]
   
   provisioner "local-exec" {
-    command = <<-EOT
-      echo " Verifying Kyverno installation..."
-      
-      # Check Kyverno pods
-      if KUBECONFIG=${path.module}/kubeconfig.yaml kubectl get pods -n kyverno-system | grep -q "kyverno"; then
-        echo " Kyverno pods are running"
-        KUBECONFIG=${path.module}/kubeconfig.yaml kubectl get pods -n kyverno-system
-      else
-        echo " Kyverno pods not found"
-        exit 1
-      fi
-      
-      # Check Kyverno policies
-      if KUBECONFIG=${path.module}/kubeconfig.yaml kubectl get clusterpolicies | grep -q "require-secure-images"; then
-        echo " Kyverno policies are installed"
-        KUBECONFIG=${path.module}/kubeconfig.yaml kubectl get clusterpolicies
-      else
-        echo " Kyverno policies not found"
-        exit 1
-      fi
-      
-      echo " Kyverno installation verified successfully!"
-    EOT
+    command = "KUBECONFIG=kubeconfig.yaml sh -c 'echo \"Verifying Kyverno installation...\" && if kubectl get pods -n kyverno-system | grep -q \"kyverno\"; then echo \" Kyverno pods are running\"; kubectl get pods -n kyverno-system; else echo \" Kyverno pods not found\"; exit 1; fi && if kubectl get clusterpolicies | grep -q \"require-secure-images\"; then echo \" Kyverno policies are installed\"; kubectl get clusterpolicies; else echo \" Kyverno policies not found\"; exit 1; fi && echo \" Kyverno installation verified successfully!\"'"
   }
 }
