@@ -106,6 +106,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup k3d and Create Kubeconfig
+        run: |
+          echo "Setting up k3d and creating kubeconfig..."
+          # Install k3d
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          # Create kubeconfig for existing cluster
+          cd infrastructure/terraform
+          k3d kubeconfig get ghost-k3d > kubeconfig.yaml
+          echo "Kubeconfig created successfully!"
+          ls -la kubeconfig.yaml
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -175,6 +186,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup k3d and Create Kubeconfig
+        run: |
+          echo "Setting up k3d and creating kubeconfig..."
+          # Install k3d
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          # Create kubeconfig for existing cluster
+          cd infrastructure/terraform
+          k3d kubeconfig get ghost-k3d > kubeconfig.yaml
+          echo "Kubeconfig created successfully!"
+          ls -la kubeconfig.yaml
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -226,6 +248,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
+      - name: Setup k3d and Create Kubeconfig
+        run: |
+          echo "Setting up k3d and creating kubeconfig..."
+          # Install k3d
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          # Create kubeconfig for existing cluster
+          cd infrastructure/terraform
+          k3d kubeconfig get ghost-k3d > kubeconfig.yaml
+          echo "Kubeconfig created successfully!"
+          ls -la kubeconfig.yaml
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
