@@ -1,12 +1,12 @@
 # Kubernetes provider configuration
 provider "kubernetes" {
-  config_path = "${path.module}/kubeconfig.yaml"
+  config_path = "kubeconfig.yaml"
 }
 
 # Helm provider configuration
 provider "helm" {
   kubernetes {
-    config_path = "${path.module}/kubeconfig.yaml"
+    config_path = "kubeconfig.yaml"
   }
 }
 

@@ -5,7 +5,7 @@ output "cluster_name" {
 
 output "kube_config_path" {
   description = "Path to kubeconfig file"
-  value       = "${path.module}/kubeconfig.yaml"
+  value       = "kubeconfig.yaml"
 }
 
 output "cluster_endpoint" {
