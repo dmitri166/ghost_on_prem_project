@@ -6,10 +6,16 @@ provider "helm" {
   alias = "after_cluster"
 }
 
+# Wait for kubeconfig file to exist
+data "local_file" "kubeconfig_helm" {
+  filename = "${path.cwd}/kubeconfig.yaml"
+  depends_on = [null_resource.wait_for_cluster]
+}
+
 # Install Kyverno using Helm (with upgrade support)
 resource "helm_release" "kyverno" {
   provider = helm.after_cluster
-  name       = "kyverno"
+  name       = "kyverno-security"
   repository = "https://kyverno.github.io/kyverno/"
   chart      = "kyverno"
   namespace  = "kyverno-system"
@@ -20,7 +26,7 @@ resource "helm_release" "kyverno" {
     ignore_changes = all
   }
   
-  depends_on = [null_resource.check_kyverno]
+  depends_on = [data.local_file.kubeconfig_helm]
 }
 
 # Apply Kyverno policies after installation
