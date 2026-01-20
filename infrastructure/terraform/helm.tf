@@ -6,7 +6,7 @@ provider "helm" {
   alias = "after_cluster"
 }
 
-# Import existing Kyverno release instead of creating new one
+# Install Kyverno using Helm (best practice: manage existing release)
 resource "helm_release" "kyverno" {
   provider = helm.after_cluster
   name       = "kyverno"
@@ -15,7 +15,7 @@ resource "helm_release" "kyverno" {
   namespace  = "kyverno-system"
   create_namespace = true
   
-  # Import existing release instead of creating new one
+  # Best practice: manage existing release
   lifecycle {
     ignore_changes = all
   }

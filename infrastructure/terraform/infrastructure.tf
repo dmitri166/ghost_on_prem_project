@@ -36,7 +36,7 @@ resource "helm_release" "metallb" {
   name       = "metallb"
   repository = "https://metallb.github.io/metallb"
   chart      = "metallb"
-  namespace  = "infrastructure"
+  namespace  = kubernetes_namespace.infrastructure.metadata[0].name
   
   create_namespace = false
   
@@ -50,7 +50,7 @@ resource "helm_release" "metallb" {
     value = "2"
   }
   
-  depends_on = [kubernetes_namespace.infrastructure]
+  depends_on = [data.kubernetes_namespace.infrastructure]
 }
 
 # Install ArgoCD (infrastructure component)
@@ -58,7 +58,7 @@ resource "helm_release" "argocd" {
   name       = "argocd"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
-  namespace  = "argocd"
+  namespace  = data.kubernetes_namespace.argocd.metadata[0].name
   
   create_namespace = false
   
@@ -83,14 +83,14 @@ resource "helm_release" "argocd" {
   }
   
   set {
-    name  = "configs.credentialTemplates[0].url"
-    value = "https://github.com/dmitri166/ghost_on_prem_project"
-  }
-  
-  set {
     name  = "configs.credentialTemplates[0].type"
     value = "git"
   }
   
-  depends_on = [kubernetes_namespace.argocd]
+  set {
+    name  = "configs.credentialTemplates[0].url"
+    value = "https://github.com/dmitri166/ghost_on_prem_project"
+  }
+  
+  depends_on = [data.kubernetes_namespace.argocd]
 }
