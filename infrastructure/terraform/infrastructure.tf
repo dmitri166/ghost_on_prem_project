@@ -1,6 +1,7 @@
 # Kubernetes provider configuration
 provider "kubernetes" {
   config_path = "kubeconfig.yaml"
+  alias = "after_cluster"
 }
 
 # Helm provider configuration
@@ -8,10 +9,12 @@ provider "helm" {
   kubernetes {
     config_path = "kubeconfig.yaml"
   }
+  alias = "after_cluster"
 }
 
 # Create infrastructure namespaces (managed by Terraform)
 resource "kubernetes_namespace" "infrastructure" {
+  provider = kubernetes.after_cluster
   metadata {
     name = "infrastructure"
     labels = {
@@ -24,6 +27,7 @@ resource "kubernetes_namespace" "infrastructure" {
 }
 
 resource "kubernetes_namespace" "argocd" {
+  provider = kubernetes.after_cluster
   metadata {
     name = "argocd"
     labels = {
