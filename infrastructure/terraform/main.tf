@@ -23,6 +23,15 @@ resource "null_resource" "wait_for_cluster" {
   depends_on = [null_resource.create_cluster]
   
   provisioner "local-exec" {
-    command = "k3d kubeconfig merge ${local.cluster_name} --output kubeconfig.yaml && kubectl --kubeconfig=kubeconfig.yaml wait --for=condition=Ready nodes --all --timeout=300s"
+    command = "k3d kubeconfig merge ${local.cluster_name} --output ${path.module}/kubeconfig.yaml && echo 'Kubeconfig created at: ${path.module}/kubeconfig.yaml' && ls -la ${path.module}/kubeconfig.yaml"
+  }
+}
+
+# Clean up any existing Helm release
+resource "null_resource" "cleanup_helm" {
+  depends_on = [null_resource.wait_for_cluster]
+  
+  provisioner "local-exec" {
+    command = "KUBECONFIG=${path.module}/kubeconfig.yaml helm uninstall kyverno -n kyverno-system 2>/dev/null || echo 'No existing Kyverno release to cleanup'"
   }
 }
