@@ -11,9 +11,8 @@ locals {
   https_port     = 443
 }
 
-# Create kubeconfig file before Terraform providers initialize
-# This must be done manually before running terraform
-# Run: k3d kubeconfig get ghost-k3d > kubeconfig.yaml
+# Cluster is created in CI/CD before Terraform runs
+# This ensures kubeconfig exists before providers initialize
 
 # Check if Kyverno is already installed
 resource "null_resource" "check_kyverno" {
