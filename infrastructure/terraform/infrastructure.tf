@@ -4,14 +4,6 @@ provider "kubernetes" {
   alias = "after_cluster"
 }
 
-# Helm provider configuration
-provider "helm" {
-  kubernetes {
-    config_path = "kubeconfig.yaml"
-  }
-  alias = "after_cluster"
-}
-
 # Create infrastructure namespaces (managed by Terraform)
 resource "kubernetes_namespace" "infrastructure" {
   provider = kubernetes.after_cluster
