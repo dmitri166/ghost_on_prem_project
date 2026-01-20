@@ -4,19 +4,6 @@ provider "kubernetes" {
   alias = "after_cluster"
 }
 
-# Import existing namespaces instead of creating new ones
-data "kubernetes_namespace" "infrastructure" {
-  metadata {
-    name = "infrastructure"
-  }
-}
-
-data "kubernetes_namespace" "argocd" {
-  metadata {
-    name = "argocd"
-  }
-}
-
 # Create infrastructure namespaces (managed by Terraform)
 resource "kubernetes_namespace" "infrastructure" {
   provider = kubernetes.after_cluster
