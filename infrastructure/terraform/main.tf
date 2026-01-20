@@ -1,7 +1,7 @@
 # Local values for configuration
 locals {
   cluster_name   = "ghost-k3d"
-  k3s_version    = "rancher/k3s:v1.28.8-k3s2"
+  k3s_version    = "rancher/k3s:v1.31.5-k3s1"
   master_nodes   = 1
   worker_nodes   = 2
   cluster_cidr   = "10.42.0.0/16"

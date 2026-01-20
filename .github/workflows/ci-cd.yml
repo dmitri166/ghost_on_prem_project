@@ -111,14 +111,14 @@ jobs:
           echo "Setting up k3d and creating kubeconfig..."
           # Install k3d
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Create cluster if it doesn't exist
+          # Best Practice: Create cluster if doesn't exist, upgrade if exists
           if ! k3d cluster list | grep -q 'ghost-k3d'; then
-            echo "Creating ghost-k3d cluster..."
-            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.28.8-k3s2 --port 6443 --network k3d-ghost-k3d-net
+            echo "Creating new ghost-k3d cluster..."
+            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
           else
-            echo "Cluster ghost-k3d already exists"
+            echo "Cluster ghost-k3d already exists, using existing cluster"
           fi
-          # Create kubeconfig for existing cluster
+          # Best Practice: Create kubeconfig before Terraform initialization
           cd infrastructure/terraform
           k3d kubeconfig get ghost-k3d > kubeconfig.yaml
           echo "Kubeconfig created successfully!"
@@ -198,14 +198,14 @@ jobs:
           echo "Setting up k3d and creating kubeconfig..."
           # Install k3d
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Create cluster if it doesn't exist
+          # Best Practice: Create cluster if doesn't exist, upgrade if exists
           if ! k3d cluster list | grep -q 'ghost-k3d'; then
-            echo "Creating ghost-k3d cluster..."
-            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.28.8-k3s2 --port 6443 --network k3d-ghost-k3d-net
+            echo "Creating new ghost-k3d cluster..."
+            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
           else
-            echo "Cluster ghost-k3d already exists"
+            echo "Cluster ghost-k3d already exists, using existing cluster"
           fi
-          # Create kubeconfig for existing cluster
+          # Best Practice: Create kubeconfig before Terraform initialization
           cd infrastructure/terraform
           k3d kubeconfig get ghost-k3d > kubeconfig.yaml
           echo "Kubeconfig created successfully!"
@@ -268,14 +268,14 @@ jobs:
           echo "Setting up k3d and creating kubeconfig..."
           # Install k3d
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Create cluster if it doesn't exist
+          # Best Practice: Create cluster if doesn't exist, upgrade if exists
           if ! k3d cluster list | grep -q 'ghost-k3d'; then
-            echo "Creating ghost-k3d cluster..."
-            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.28.8-k3s2 --port 6443 --network k3d-ghost-k3d-net
+            echo "Creating new ghost-k3d cluster..."
+            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
           else
-            echo "Cluster ghost-k3d already exists"
+            echo "Cluster ghost-k3d already exists, using existing cluster"
           fi
-          # Create kubeconfig for existing cluster
+          # Best Practice: Create kubeconfig before Terraform initialization
           cd infrastructure/terraform
           k3d kubeconfig get ghost-k3d > kubeconfig.yaml
           echo "Kubeconfig created successfully!"
