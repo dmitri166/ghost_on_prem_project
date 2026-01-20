@@ -1,19 +1,13 @@
 # Kubernetes provider configuration
 provider "kubernetes" {
-  config_path = "${path.cwd}/kubeconfig.yaml"
+  config_path = "./kubeconfig.yaml"
   alias = "after_cluster"
-}
-
-# Wait for kubeconfig file to exist
-data "local_file" "kubeconfig" {
-  filename = "${path.cwd}/kubeconfig.yaml"
-  depends_on = [null_resource.wait_for_cluster]
 }
 
 # Create infrastructure namespaces (managed by Terraform)
 resource "kubernetes_namespace" "infrastructure" {
   provider = kubernetes.after_cluster
-  depends_on = [data.local_file.kubeconfig]
+  depends_on = [null_resource.wait_for_cluster]
   metadata {
     name = "infrastructure"
     labels = {
@@ -27,7 +21,7 @@ resource "kubernetes_namespace" "infrastructure" {
 
 resource "kubernetes_namespace" "argocd" {
   provider = kubernetes.after_cluster
-  depends_on = [data.local_file.kubeconfig]
+  depends_on = [null_resource.wait_for_cluster]
   metadata {
     name = "argocd"
     labels = {

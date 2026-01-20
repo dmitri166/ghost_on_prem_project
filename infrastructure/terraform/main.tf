@@ -18,12 +18,12 @@ resource "null_resource" "create_cluster" {
   }
 }
 
-# Wait for cluster to be ready
+# Use existing k3d kubeconfig instead of creating new one
 resource "null_resource" "wait_for_cluster" {
   depends_on = [null_resource.create_cluster]
   
   provisioner "local-exec" {
-    command = "k3d kubeconfig merge ${local.cluster_name} --output kubeconfig.yaml && echo 'Kubeconfig created at:' && pwd && ls -la kubeconfig.yaml"
+    command = "echo 'Using existing k3d kubeconfig' && k3d kubeconfig get ${local.cluster_name} > kubeconfig.yaml && echo 'Kubeconfig ready:' && ls -la kubeconfig.yaml"
   }
 }
 
