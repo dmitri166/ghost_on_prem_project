@@ -11,8 +11,17 @@ locals {
   https_port     = 443
 }
 
+# Pre-create kubeconfig file before providers initialize
+resource "null_resource" "create_kubeconfig" {
+  provisioner "local-exec" {
+    command = "k3d kubeconfig get ${local.cluster_name} > kubeconfig.yaml 2>/dev/null || echo 'Kubeconfig already exists'"
+  }
+}
+
 # Create k3d cluster using local-exec (since k3d provider is not available)
 resource "null_resource" "create_cluster" {
+  depends_on = [null_resource.create_kubeconfig]
+  
   provisioner "local-exec" {
     command = "if ! k3d cluster list | grep -q '${local.cluster_name}'; then k3d cluster create ${local.cluster_name} --servers ${local.master_nodes} --agents ${local.worker_nodes} --image ${local.k3s_version} --port ${local.api_port} --network k3d-${local.cluster_name}-net; else echo 'Cluster ${local.cluster_name} already exists, skipping creation'; fi"
   }
@@ -23,7 +32,7 @@ resource "null_resource" "wait_for_cluster" {
   depends_on = [null_resource.create_cluster]
   
   provisioner "local-exec" {
-    command = "echo 'Using existing k3d kubeconfig' && k3d kubeconfig get ${local.cluster_name} > kubeconfig.yaml && echo 'Kubeconfig ready:' && ls -la kubeconfig.yaml"
+    command = "echo 'Kubeconfig ready:' && ls -la kubeconfig.yaml"
   }
 }
 
