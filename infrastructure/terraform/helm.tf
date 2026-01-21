@@ -1,7 +1,7 @@
 # Helm provider configuration
 provider "helm" {
   kubernetes {
-    config_path = "./kubeconfig.yaml"
+    config_path = "${path.cwd}/kubeconfig.yaml"
   }
   alias = "after_cluster"
 }
