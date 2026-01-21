@@ -50,10 +50,11 @@ resource "kubernetes_namespace" "argocd" {
 
 # Install MetalLB for LoadBalancer support (infrastructure component)
 resource "helm_release" "metallb" {
+  provider = helm.after_cluster
   name       = "metallb"
   repository = "https://metallb.github.io/metallb"
   chart      = "metallb"
-  namespace  = kubernetes_namespace.infrastructure.metadata[0].name
+  namespace  = data.kubernetes_namespace.infrastructure.metadata[0].name
   
   create_namespace = false
   
@@ -70,8 +71,9 @@ resource "helm_release" "metallb" {
   depends_on = [data.kubernetes_namespace.infrastructure]
 }
 
-# Install ArgoCD (infrastructure component)
+# Install ArgoCD for GitOps (infrastructure component)
 resource "helm_release" "argocd" {
+  provider = helm.after_cluster
   name       = "argocd"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
@@ -80,33 +82,58 @@ resource "helm_release" "argocd" {
   create_namespace = false
   
   set {
-    name  = "server.service.type"
-    value = "NodePort"
+    name  = "server.insecure"
+    value = "true"
   }
   
   set {
-    name  = "server.service.nodePortHttp"
-    value = "30080"
+    name  = "configs.secret.argocdServerTlsConfig.secretname"
+    value = "argocd-server-tls"
   }
   
   set {
-    name  = "server.service.nodePortHttps"
-    value = "30443"
+    name  = "configs.secret.argocdServerTlsConfig.crtname"
+    value = "argocd-server-tls-crt"
   }
   
   set {
-    name  = "configs.credentialTemplates[0].name"
-    value = "repo-creds"
+    name  = "configs.secret.argocdServerTlsConfig.keyname"
+    value = "argocd-server-tls-key"
   }
   
   set {
-    name  = "configs.credentialTemplates[0].type"
-    value = "git"
+    name  = "server.additionalApplications"
+    value = "true"
   }
   
   set {
-    name  = "configs.credentialTemplates[0].url"
-    value = "https://github.com/dmitri166/ghost_on_prem_project"
+    name  = "server.additionalApplicationSources"
+    value = "true"
+  }
+  
+  set {
+    name  = "crds.install"
+    value = "true"
+  }
+  
+  set {
+    name  = "notifications.enabled"
+    value = "true"
+  }
+  
+  set {
+    name  = "notifications.argocdNotifications.notifiers.service.slack"
+    value = "true"
+  }
+  
+  set {
+    name  = "notifications.argocdNotifications.notifiers.service.slack.username"
+    value = "argocd"
+  }
+  
+  set {
+    name  = "notifications.argocdNotifications.notifiers.service.slack.token"
+    value = "xoxb-3595148752-4199-4255-8340-990814965876"
   }
   
   depends_on = [data.kubernetes_namespace.argocd]
