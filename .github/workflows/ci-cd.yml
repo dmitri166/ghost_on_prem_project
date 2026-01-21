@@ -227,9 +227,20 @@ jobs:
           # Verify file was created
           echo "Kubeconfig file created successfully!"
           ls -la kubeconfig.yaml
-          # Debug: Show kubeconfig content (first 5 lines)
-          echo "Kubeconfig content (first 5 lines):"
-          head -5 kubeconfig.yaml
+          # Debug: Show kubeconfig content (first 10 lines to see server endpoint)
+          echo "Kubeconfig content (first 10 lines):"
+          head -10 kubeconfig.yaml
+          # Debug: Show server endpoint specifically
+          echo "Server endpoint in kubeconfig:"
+          grep -A 2 "server:" kubeconfig.yaml || echo "No server endpoint found"
+          # Fix server endpoint if it's pointing to wrong port
+          if grep -q "server: http://localhost" kubeconfig.yaml; then
+            echo "Fixing server endpoint from http://localhost to https://localhost:6443"
+            sed -i 's|server: http://localhost|server: https://localhost:6443|g' kubeconfig.yaml
+            echo "Server endpoint fixed!"
+            echo "Updated server endpoint:"
+            grep -A 2 "server:" kubeconfig.yaml
+          fi
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
