@@ -6,12 +6,14 @@ provider "kubernetes" {
 
 # Reference existing namespaces (best practice for existing clusters)
 data "kubernetes_namespace" "infrastructure" {
+  provider = kubernetes.after_cluster
   metadata {
     name = "infrastructure"
   }
 }
 
 data "kubernetes_namespace" "argocd" {
+  provider = kubernetes.after_cluster
   metadata {
     name = "argocd"
   }
