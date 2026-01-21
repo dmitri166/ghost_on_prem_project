@@ -110,32 +110,23 @@ jobs:
 
       - name: Setup k3d and Create Kubeconfig
         run: |
-          echo "Setting up k3d and creating kubeconfig..."
+          echo "Setting up k3d for planning..."
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
           echo "Available clusters:"
           k3d cluster list
-          echo "Cluster info for ghost-k3d:"
-          k3d cluster info ghost-k3d
-          echo "Detailed cluster status:"
-          k3d cluster list --verbose
-          echo "Checking if cluster is actually running..."
-          k3d cluster list | grep 'ghost-k3d' || echo "Cluster not found in list"
+          # For planning, we need access to existing cluster or create a temporary one for validation
           if ! k3d cluster list | grep -q 'ghost-k3d'; then
-            echo "Cluster not found, creating new cluster..."
+            echo "No existing cluster found for planning. Creating temporary cluster for validation..."
             k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
             echo "Waiting for cluster to be ready..."
             sleep 10
+            echo "⚠️  Note: This cluster is for planning validation only"
           else
-            echo "Cluster ghost-k3d exists, using existing cluster"
+            echo "Using existing cluster for planning"
           fi
           cd infrastructure/terraform
-          echo "Creating kubeconfig in: $(pwd)"
           k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
-          echo "Kubeconfig file created successfully!"
-          ls -la kubeconfig.yaml
-          echo "Testing kubeconfig connection..."
-          KUBECONFIG=kubeconfig.yaml kubectl cluster-info || echo "Kubectl connection failed"
-          echo "Terraform will use provider config_path: $(pwd)/kubeconfig.yaml"
+          echo "Kubeconfig created for planning"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -185,8 +176,20 @@ jobs:
         run: |
           echo "Setting up k3d for apply..."
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          echo "Available clusters:"
+          k3d cluster list
+          # Check if cluster exists and create if needed
+          if ! k3d cluster list | grep -q 'ghost-k3d'; then
+            echo "Cluster not found, creating new cluster..."
+            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
+            echo "Waiting for cluster to be ready..."
+            sleep 10
+          else
+            echo "Cluster ghost-k3d exists, using existing cluster"
+          fi
           cd infrastructure/terraform
           k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
+          echo "Kubeconfig created successfully"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3

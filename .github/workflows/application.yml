@@ -285,7 +285,7 @@ jobs:
           echo "🔄 ArgoCD will automatically sync this change"
           echo "🌐 Access: http://ghost-prod.local"
 
-  # Manual Deployment Trigger
+  # Manual Deployment Trigger option
   manual-deploy:
     name: "🎯 Manual Deploy"
     needs: build-and-scan
