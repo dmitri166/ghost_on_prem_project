@@ -238,7 +238,7 @@ jobs:
           grep -A 2 "server:" kubeconfig.yaml || echo "No server endpoint found"
           # Best Practice: Extract actual port from k3d and use it
           echo "Extracting actual k3d port mapping..."
-          K3D_PORT=$(k3d cluster list | grep 'ghost-k3d' | grep -o '[0-9]*' | head -1)
+          K3D_PORT=$(k3d cluster list | grep 'ghost-k3d' | grep -oP '[0-9]*' | head -1)
           echo "k3d mapped port: $K3D_PORT"
           if [ -n "$K3D_PORT" ]; then
             echo "Updating kubeconfig to use k3d's actual mapped port: $K3D_PORT"
