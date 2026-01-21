@@ -4,7 +4,19 @@ provider "kubernetes" {
   alias = "after_cluster"
 }
 
-# Reference existing namespaces (best practice for existing clusters)
+# Variables for best practice configuration
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+  default     = "dev"
+  
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be one of: dev, staging, prod."
+  }
+}
+
+# Check what namespaces exist (best practice: discover existing)
 data "kubernetes_namespace" "infrastructure" {
   provider = kubernetes.after_cluster
   metadata {
@@ -26,23 +38,26 @@ data "kubernetes_namespace" "kyverno_system" {
   }
 }
 
-# Reference existing MetalLB installation
-data "helm_release" "metallb" {
-  provider = helm.after_cluster
-  name    = "metallb"
-  namespace = data.kubernetes_namespace.infrastructure.metadata[0].name
+# Check if Ghost namespaces exist
+data "kubernetes_namespace" "ghost_dev" {
+  provider = kubernetes.after_cluster
+  metadata {
+    name = "ghost-dev"
+  }
 }
 
-# Reference existing ArgoCD installation
-data "helm_release" "argocd" {
-  provider = helm.after_cluster
-  name    = "argocd"
-  namespace = data.kubernetes_namespace.argocd.metadata[0].name
+data "kubernetes_namespace" "ghost_staging" {
+  provider = kubernetes.after_cluster
+  metadata {
+    name = "ghost-staging"
+  }
 }
 
-# Reference existing Kyverno installation
-data "helm_release" "kyverno" {
-  provider = helm.after_cluster
-  name    = "kyverno"
-  namespace = data.kubernetes_namespace.kyverno_system.metadata[0].name
+data "kubernetes_namespace" "ghost_prod" {
+  provider = kubernetes.after_cluster
+  metadata {
+    name = "ghost-prod"
+  }
 }
+
+# Infrastructure only - applications are deployed by ArgoCD
