@@ -61,7 +61,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
 
       - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v2.0.0
+        uses: aquasecurity/tfsec-action@v1.0.0
         with:
           working_directory: infrastructure/terraform
           additional_args: '--config-file policy/tfsec/tfsec.toml --format sarif --out reports/tfsec-results.sarif'
