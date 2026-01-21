@@ -4,7 +4,22 @@ provider "kubernetes" {
   alias = "after_cluster"
 }
 
-# Check if namespaces exist, create only if they don't
+# Check if namespaces exist
+data "kubernetes_namespace" "infrastructure" {
+  provider = kubernetes.after_cluster
+  metadata {
+    name = "infrastructure"
+  }
+}
+
+data "kubernetes_namespace" "argocd" {
+  provider = kubernetes.after_cluster
+  metadata {
+    name = "argocd"
+  }
+}
+
+# Create namespaces only if they don't exist
 resource "kubernetes_namespace" "infrastructure" {
   provider = kubernetes.after_cluster
   metadata {
@@ -18,9 +33,7 @@ resource "kubernetes_namespace" "infrastructure" {
   
   # Prevent recreation if namespace already exists
   lifecycle {
-    ignore_changes = [
-      metadata[0].labels,
-    ]
+    ignore_changes = all
   }
 }
 
@@ -37,9 +50,7 @@ resource "kubernetes_namespace" "argocd" {
   
   # Prevent recreation if namespace already exists
   lifecycle {
-    ignore_changes = [
-      metadata[0].labels,
-    ]
+    ignore_changes = all
   }
 }
 
@@ -49,11 +60,11 @@ resource "helm_release" "metallb" {
   name       = "metallb"
   repository = "https://metallb.github.io/metallb"
   chart      = "metallb"
-  namespace  = kubernetes_namespace.infrastructure.metadata[0].name
+  namespace  = data.kubernetes_namespace.infrastructure.metadata[0].name
   
   create_namespace = false
   
-  depends_on = [kubernetes_namespace.infrastructure]
+  depends_on = [data.kubernetes_namespace.infrastructure]
 }
 
 # Install ArgoCD for GitOps (infrastructure component)
@@ -62,9 +73,9 @@ resource "helm_release" "argocd" {
   name       = "argocd"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
-  namespace  = kubernetes_namespace.argocd.metadata[0].name
+  namespace  = data.kubernetes_namespace.argocd.metadata[0].name
   
   create_namespace = false
   
-  depends_on = [kubernetes_namespace.argocd]
+  depends_on = [data.kubernetes_namespace.argocd]
 }
