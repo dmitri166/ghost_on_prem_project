@@ -108,15 +108,12 @@ jobs:
 
       - name: Setup k3d and Create Kubeconfig
         run: |
-          echo "Setting up k3d and creating kubeconfig..."
+          echo "Setting up k3d and creating kubeconfig for apply job..."
           # Install k3d
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Debug: Check if cluster exists
+          # Check if cluster exists
           echo "Available clusters:"
           k3d cluster list
-          # Debug: Verify cluster access
-          echo "Cluster info for ghost-k3d:"
-          k3d cluster info ghost-k3d
           # Create kubeconfig with verification
           cd infrastructure/terraform
           echo "Creating kubeconfig in: $(pwd)"
@@ -300,15 +297,12 @@ jobs:
 
       - name: Setup k3d and Create Kubeconfig
         run: |
-          echo "Setting up k3d and creating kubeconfig..."
+          echo "Setting up k3d and creating kubeconfig for apply job..."
           # Install k3d
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Debug: Check if cluster exists
+          # Check if cluster exists
           echo "Available clusters:"
           k3d cluster list
-          # Debug: Verify cluster access
-          echo "Cluster info for ghost-k3d:"
-          k3d cluster info ghost-k3d
           # Create kubeconfig with verification
           cd infrastructure/terraform
           echo "Creating kubeconfig in: $(pwd)"
