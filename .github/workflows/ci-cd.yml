@@ -213,10 +213,13 @@ jobs:
           k3d cluster list --verbose
           echo "Checking if cluster is actually running..."
           k3d cluster list | grep 'ghost-k3d' || echo "Cluster not found in list"
-          # Only recreate if cluster doesn't exist
+          # Best Practice: Only create if cluster doesn't exist
           if ! k3d cluster list | grep -q 'ghost-k3d'; then
             echo "Cluster not found, creating new cluster..."
             k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
+            # Wait for cluster to be ready
+            echo "Waiting for cluster to be ready..."
+            sleep 10
           else
             echo "Cluster ghost-k3d exists, using existing cluster"
           fi
@@ -233,10 +236,19 @@ jobs:
           # Debug: Show server endpoint specifically
           echo "Server endpoint in kubeconfig:"
           grep -A 2 "server:" kubeconfig.yaml || echo "No server endpoint found"
-          # Fix server endpoint to use localhost:6443 (k3d uses random ports internally)
-          echo "Fixing server endpoint to use localhost:6443..."
-          sed -i 's|server: https://0.0.0.0:[0-9]*|server: https://localhost:6443|g' kubeconfig.yaml
-          sed -i 's|server: http://localhost|server: https://localhost:6443|g' kubeconfig.yaml
+          # Best Practice: Extract actual port from k3d and use it
+          echo "Extracting actual k3d port mapping..."
+          K3D_PORT=$(k3d cluster list | grep 'ghost-k3d' | grep -o '[0-9]*' | head -1)
+          echo "k3d mapped port: $K3D_PORT"
+          if [ -n "$K3D_PORT" ]; then
+            echo "Updating kubeconfig to use k3d's actual mapped port: $K3D_PORT"
+            sed -i "s|server: https://0.0.0.0:[0-9]*|server: https://localhost:$K3D_PORT|g" kubeconfig.yaml
+            sed -i "s|server: http://localhost|server: https://localhost:$K3D_PORT|g" kubeconfig.yaml
+          else
+            echo "No k3d port found, using default 6443"
+            sed -i 's|server: https://0.0.0.0:[0-9]*|server: https://localhost:6443|g' kubeconfig.yaml
+            sed -i 's|server: http://localhost|server: https://localhost:6443|g' kubeconfig.yaml
+          fi
           echo "Server endpoint fixed!"
           echo "Updated server endpoint:"
           grep -A 2 "server:" kubeconfig.yaml
