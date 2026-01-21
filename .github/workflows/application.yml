@@ -44,8 +44,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: applications/ghost-app/source
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -152,8 +150,8 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          file: ./applications/ghost-app/source/Dockerfile
-          context: ./applications/ghost-app/source
+          file: ./Dockerfile
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

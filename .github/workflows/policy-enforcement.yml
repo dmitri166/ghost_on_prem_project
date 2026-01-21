@@ -1,13 +1,7 @@
-name: Policy Enforcement Gates
+---
+name: Policy Enforcement Gates (Reusable)
 
 on:
-  pull_request:
-    branches: [ master ]
-    paths:
-      - 'infrastructure/terraform/**'
-      - 'applications/**'
-      - 'platform/**'
-      - 'policy/**'
   workflow_call:
     inputs:
       skip_policy_checks:
