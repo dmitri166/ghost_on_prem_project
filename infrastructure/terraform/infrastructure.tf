@@ -4,7 +4,7 @@ provider "kubernetes" {
   alias = "after_cluster"
 }
 
-# Check if namespaces exist
+# Reference existing namespaces (best practice for existing clusters)
 data "kubernetes_namespace" "infrastructure" {
   provider = kubernetes.after_cluster
   metadata {
@@ -19,28 +19,30 @@ data "kubernetes_namespace" "argocd" {
   }
 }
 
-# Install MetalLB for LoadBalancer support (infrastructure component)
-resource "helm_release" "metallb" {
-  provider = helm.after_cluster
-  name       = "metallb"
-  repository = "https://metallb.github.io/metallb"
-  chart      = "metallb"
-  namespace  = data.kubernetes_namespace.infrastructure.metadata[0].name
-  
-  create_namespace = false
-  
-  depends_on = [data.kubernetes_namespace.infrastructure]
+data "kubernetes_namespace" "kyverno_system" {
+  provider = kubernetes.after_cluster
+  metadata {
+    name = "kyverno-system"
+  }
 }
 
-# Install ArgoCD for GitOps (infrastructure component)
-resource "helm_release" "argocd" {
+# Reference existing MetalLB installation
+data "helm_release" "metallb" {
   provider = helm.after_cluster
-  name       = "argocd"
-  repository = "https://argoproj.github.io/argo-helm"
-  chart      = "argo-cd"
-  namespace  = data.kubernetes_namespace.argocd.metadata[0].name
-  
-  create_namespace = false
-  
-  depends_on = [data.kubernetes_namespace.argocd]
+  name    = "metallb"
+  namespace = data.kubernetes_namespace.infrastructure.metadata[0].name
+}
+
+# Reference existing ArgoCD installation
+data "helm_release" "argocd" {
+  provider = helm.after_cluster
+  name    = "argocd"
+  namespace = data.kubernetes_namespace.argocd.metadata[0].name
+}
+
+# Reference existing Kyverno installation
+data "helm_release" "kyverno" {
+  provider = helm.after_cluster
+  name    = "kyverno"
+  namespace = data.kubernetes_namespace.kyverno_system.metadata[0].name
 }
