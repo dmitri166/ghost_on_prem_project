@@ -275,7 +275,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
-          path: infrastructure/terraform/tfplan
+          path: infrastructure/terraform/plan.out
           retention-days: 1
 
   # Infrastructure Apply (for main branch) - SECURED
@@ -341,12 +341,12 @@ jobs:
           cd infrastructure/terraform
           echo "## 🏗️ Terraform Plan Review"
           echo "Reviewing the following changes:"
-          terraform show tfplan
+          terraform show plan.out
           
       - name: Terraform Apply
         run: |
           cd infrastructure/terraform
-          terraform apply -auto-approve tfplan
+          terraform apply -auto-approve plan.out
 
       - name: Notify Deployment Complete
         if: success()
