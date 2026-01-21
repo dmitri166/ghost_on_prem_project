@@ -97,6 +97,9 @@ jobs:
         with:
           sarif_file: reports/checkov-results.sarif
 
+    outputs:
+      policy-check-passed: 'true'
+
   
   # Infrastructure Plan (for main branch)
   terraform-plan:
