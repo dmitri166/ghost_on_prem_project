@@ -61,10 +61,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
 
       - name: Run tfsec
-        uses: aquasecurity/tfsec-action@master
+        uses: aquasecurity/tfsec-action@v2.0.0
         with:
           working_directory: infrastructure/terraform
-          args: '--config-file policy/tfsec/tfsec.toml --format sarif --out reports/tfsec-results.sarif'
+          additional_args: '--config-file policy/tfsec/tfsec.toml --format sarif --out reports/tfsec-results.sarif'
           soft_fail: true
 
       - name: Setup OPA
