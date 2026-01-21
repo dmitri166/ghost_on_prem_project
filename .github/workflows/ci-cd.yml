@@ -63,7 +63,7 @@ jobs:
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@master
         with:
-          directory: infrastructure/terraform
+          working_directory: infrastructure/terraform
           args: '--config-file policy/tfsec/tfsec.toml --format sarif --out reports/tfsec-results.sarif'
           soft_fail: true
 
