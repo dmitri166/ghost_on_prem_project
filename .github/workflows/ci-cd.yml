@@ -202,13 +202,25 @@ jobs:
           echo "Setting up k3d and creating kubeconfig..."
           # Install k3d
           curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Debug: Check if cluster exists
+          # Check if cluster exists and has nodes
           echo "Available clusters:"
           k3d cluster list
           # Debug: Verify cluster access
           echo "Cluster info for ghost-k3d:"
           k3d cluster info ghost-k3d
-          # Create kubeconfig with verification
+          # Debug: Check cluster status in detail
+          echo "Detailed cluster status:"
+          k3d cluster list --verbose
+          echo "Checking if cluster is actually running..."
+          k3d cluster list | grep 'ghost-k3d' || echo "Cluster not found in list"
+          # Only recreate if cluster doesn't exist
+          if ! k3d cluster list | grep -q 'ghost-k3d'; then
+            echo "Cluster not found, creating new cluster..."
+            k3d cluster create ghost-k3d --servers 1 --agents 2 --image rancher/k3s:v1.31.5-k3s1 --port 6443 --network k3d-ghost-k3d-net
+          else
+            echo "Cluster ghost-k3d exists, using existing cluster"
+          fi
+          # Best Practice: Use kubeconfig merge for complete configuration
           cd infrastructure/terraform
           echo "Creating kubeconfig in: $(pwd)"
           k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
@@ -238,12 +250,12 @@ jobs:
         run: |
           cd infrastructure/terraform
           terraform plan -out=tfplan
-          
+
       - name: Terraform Show Plan
         run: |
           cd infrastructure/terraform
           terraform show -json tfplan > plan.json
-          
+
       - name: Upload Plan
         uses: actions/upload-artifact@v4
         with:
