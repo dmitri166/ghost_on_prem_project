@@ -22,6 +22,7 @@ on:
         - development
         - staging
         - production
+  workflow_call:
 
 env:
   REGISTRY: docker.io
@@ -32,7 +33,7 @@ jobs:
   test:
     name: "🧪 Test"
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     outputs:
       test-passed: ${{ steps.test-status.outputs.passed }}
     steps:
@@ -228,14 +229,15 @@ jobs:
           echo "🏷️ Image tag: ${{ needs.build-and-scan.outputs.image-tag }}"
           echo "🔄 ArgoCD will automatically sync these changes"
 
-  # Deploy to Development (Automatic)
+  # Environment-Aware Deployments
   deploy-dev:
     name: "🚀 Deploy to Development"
     needs: update-gitops
     runs-on: ubuntu-latest
     if: |
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      github.event_name == 'push'
+      github.event_name == 'push' &&
+      contains(github.event.head_commit.modified, 'applications/ghost-app/helm/values-dev.yaml')
     environment:
       name: development
       url: http://ghost-dev.local
@@ -246,15 +248,16 @@ jobs:
           echo "📦 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-scan.outputs.image-tag }}"
           echo "🔄 ArgoCD will automatically sync this change"
           echo "🌐 Access: http://ghost-dev.local"
+          echo "🎯 Triggered by: values-dev.yaml changes"
 
-  # Deploy to Staging (Manual Approval)
   deploy-staging:
     name: "🚀 Deploy to Staging"
     needs: update-gitops
     runs-on: ubuntu-latest
     if: |
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      github.event_name == 'push'
+      github.event_name == 'push' &&
+      contains(github.event.head_commit.modified, 'applications/ghost-app/helm/values-staging.yaml')
     environment:
       name: staging
       url: http://ghost-staging.local
@@ -265,15 +268,16 @@ jobs:
           echo "📦 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-scan.outputs.image-tag }}"
           echo "🔄 ArgoCD will automatically sync this change"
           echo "🌐 Access: http://ghost-staging.local"
+          echo "🎯 Triggered by: values-staging.yaml changes"
 
-  # Deploy to Production (Manual Approval)
   deploy-prod:
     name: "🚀 Deploy to Production"
     needs: update-gitops
     runs-on: ubuntu-latest
     if: |
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      github.event_name == 'push'
+      github.event_name == 'push' &&
+      contains(github.event.head_commit.modified, 'applications/ghost-app/helm/values-prod.yaml')
     environment:
       name: production
       url: http://ghost-prod.local
@@ -284,6 +288,7 @@ jobs:
           echo "📦 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-scan.outputs.image-tag }}"
           echo "🔄 ArgoCD will automatically sync this change"
           echo "🌐 Access: http://ghost-prod.local"
+          echo "🎯 Triggered by: values-prod.yaml changes"
 
   # Manual Deployment Trigger option
   manual-deploy:
