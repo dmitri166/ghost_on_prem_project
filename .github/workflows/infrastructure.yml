@@ -28,7 +28,9 @@ jobs:
       contents: read
       security-events: read
       actions: read
-    uses: ./.github/workflows/policy-enforcement.yml
+    steps:
+      - name: Run Policy Enforcement
+        uses: ./.github/workflows/policy-enforcement.yml
 
   
   # Infrastructure Plan (for main branch)
