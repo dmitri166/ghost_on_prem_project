@@ -45,7 +45,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: applications/ghost-app/source/package-lock.json
+          cache-dependency-path: applications/ghost-app/source
 
       - name: Setup Python
         uses: actions/setup-python@v4
