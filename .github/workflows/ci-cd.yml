@@ -233,14 +233,13 @@ jobs:
           # Debug: Show server endpoint specifically
           echo "Server endpoint in kubeconfig:"
           grep -A 2 "server:" kubeconfig.yaml || echo "No server endpoint found"
-          # Fix server endpoint if it's pointing to wrong port
-          if grep -q "server: http://localhost" kubeconfig.yaml; then
-            echo "Fixing server endpoint from http://localhost to https://localhost:6443"
-            sed -i 's|server: http://localhost|server: https://localhost:6443|g' kubeconfig.yaml
-            echo "Server endpoint fixed!"
-            echo "Updated server endpoint:"
-            grep -A 2 "server:" kubeconfig.yaml
-          fi
+          # Fix server endpoint to use localhost:6443 (k3d uses random ports internally)
+          echo "Fixing server endpoint to use localhost:6443..."
+          sed -i 's|server: https://0.0.0.0:[0-9]*|server: https://localhost:6443|g' kubeconfig.yaml
+          sed -i 's|server: http://localhost|server: https://localhost:6443|g' kubeconfig.yaml
+          echo "Server endpoint fixed!"
+          echo "Updated server endpoint:"
+          grep -A 2 "server:" kubeconfig.yaml
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
