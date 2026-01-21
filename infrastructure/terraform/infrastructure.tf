@@ -19,41 +19,6 @@ data "kubernetes_namespace" "argocd" {
   }
 }
 
-# Create namespaces only if they don't exist
-resource "kubernetes_namespace" "infrastructure" {
-  provider = kubernetes.after_cluster
-  metadata {
-    name = "infrastructure"
-    labels = {
-      name        = "infrastructure"
-      managed-by  = "terraform"
-      environment = "production"
-      purpose     = "cluster-infrastructure"
-    }
-  
-  # Prevent recreation if namespace already exists
-  lifecycle {
-    ignore_changes = all
-  }
-}
-
-resource "kubernetes_namespace" "argocd" {
-  provider = kubernetes.after_cluster
-  metadata {
-    name = "argocd"
-    labels = {
-      name        = "argocd"
-      managed-by  = "terraform"
-      environment = "production"
-      purpose     = "gitops-controller"
-    }
-  
-  # Prevent recreation if namespace already exists
-  lifecycle {
-    ignore_changes = all
-  }
-}
-
 # Install MetalLB for LoadBalancer support (infrastructure component)
 resource "helm_release" "metallb" {
   provider = helm.after_cluster
