@@ -240,6 +240,14 @@ jobs:
           echo "Server endpoint fixed!"
           echo "Updated server endpoint:"
           grep -A 2 "server:" kubeconfig.yaml
+          # Debug: Verify kubeconfig is accessible and test connection
+          echo "Testing kubeconfig connection..."
+          KUBECONFIG=kubeconfig.yaml kubectl cluster-info || echo "Kubectl connection failed"
+          echo "Current working directory: $(pwd)"
+          echo "Kubeconfig file permissions:"
+          ls -la kubeconfig.yaml
+          echo "Testing Terraform will read kubeconfig correctly..."
+          echo "Terraform provider config path will be: $(pwd)/kubeconfig.yaml"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
