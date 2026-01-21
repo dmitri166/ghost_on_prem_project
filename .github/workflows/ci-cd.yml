@@ -416,7 +416,7 @@ jobs:
 
   # Update GitOps configurations
   update-gitops:
-    needs: [terraform-apply, build-and-scan]
+    needs: [terraform-plan, build-and-scan]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     steps:
