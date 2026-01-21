@@ -270,92 +270,17 @@ jobs:
 
       - name: Upload Plan
         uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
         with:
           name: terraform-plan
           path: infrastructure/terraform/plan.out
           retention-days: 1
 
-  # Infrastructure Apply (for main branch) - SECURED
-  terraform-apply:
-    runs-on: self-hosted
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-    needs: terraform-plan
-    environment:
-      name: infrastructure
-      url: http://localhost:8080
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Setup k3d and Create Kubeconfig
-        run: |
-          echo "Setting up k3d and creating kubeconfig for apply job..."
-          # Install k3d
-          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # Check if cluster exists
-          echo "Available clusters:"
-          k3d cluster list
-          # Create kubeconfig with verification
-          cd infrastructure/terraform
-          echo "Creating kubeconfig in: $(pwd)"
-          k3d kubeconfig merge ghost-k3d --output kubeconfig.yaml
-          # Verify file was created
-          echo "Kubeconfig file created successfully!"
-          ls -la kubeconfig.yaml
-          # Debug: Show kubeconfig content (first 5 lines)
-          echo "Kubeconfig content (first 5 lines):"
-          head -5 kubeconfig.yaml
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ~>1.5.0
-
-      - name: Terraform Init
-        run: |
-          cd infrastructure/terraform
-          terraform init
-
-      - name: Download Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-plan
-          path: infrastructure/terraform/
-
-      - name: Terraform Plan Review
-        run: |
-          cd infrastructure/terraform
-          echo "## 🏗️ Terraform Plan Review"
-          echo "Reviewing the following changes:"
-          terraform show plan.out
-          
       - name: Terraform Apply
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         run: |
           cd infrastructure/terraform
           terraform apply -auto-approve plan.out
-
-      - name: Notify Deployment Complete
-        if: success()
-        run: |
-          echo "🎉 Infrastructure deployment completed successfully!"
-          echo "📊 Cluster: $(terraform output -raw cluster_name)"
-          echo "🔗 Endpoint: $(terraform output -raw cluster_endpoint)"
-          echo "📁 Kubeconfig: $(terraform output -raw kube_config_path)"
-
-      - name: Upload Kubeconfig
-        uses: actions/upload-artifact@v4
-        with:
-          name: kubeconfig
-          path: infrastructure/terraform/kubeconfig.yaml
-          retention-days: 1
 
   # Security and Quality Checks
   security-scan:
