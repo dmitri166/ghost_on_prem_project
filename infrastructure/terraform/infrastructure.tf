@@ -19,6 +19,30 @@ data "kubernetes_namespace" "argocd" {
   }
 }
 
+# Create namespaces if they don't exist
+resource "kubernetes_namespace" "infrastructure" {
+  provider = kubernetes.after_cluster
+  metadata {
+    name = "infrastructure"
+    labels = {
+      name        = "infrastructure"
+      managed-by  = "terraform"
+      environment = "production"
+      purpose     = "cluster-infrastructure"
+    }
+}
+
+resource "kubernetes_namespace" "argocd" {
+  provider = kubernetes.after_cluster
+  metadata {
+    name = "argocd"
+    labels = {
+      name        = "argocd"
+      managed-by  = "terraform"
+      environment = "production"
+      purpose     = "gitops-controller"
+    }
+}
 
 # Install MetalLB for LoadBalancer support (infrastructure component)
 resource "helm_release" "metallb" {
@@ -26,11 +50,11 @@ resource "helm_release" "metallb" {
   name       = "metallb"
   repository = "https://metallb.github.io/metallb"
   chart      = "metallb"
-  namespace  = data.kubernetes_namespace.infrastructure.metadata[0].name
+  namespace  = kubernetes_namespace.infrastructure.metadata[0].name
   
   create_namespace = false
   
-  depends_on = [data.kubernetes_namespace.infrastructure]
+  depends_on = [kubernetes_namespace.infrastructure]
 }
 
 # Install ArgoCD for GitOps (infrastructure component)
@@ -39,9 +63,9 @@ resource "helm_release" "argocd" {
   name       = "argocd"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
-  namespace  = data.kubernetes_namespace.argocd.metadata[0].name
+  namespace  = kubernetes_namespace.argocd.metadata[0].name
   
   create_namespace = false
   
-  depends_on = [data.kubernetes_namespace.argocd]
+  depends_on = [kubernetes_namespace.argocd]
 }
