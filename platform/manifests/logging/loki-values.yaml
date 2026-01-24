@@ -1,23 +1,21 @@
-# Loki Configuration Values
-# Centralized log aggregation for Ghost platform
+# Loki Configuration - Simple Working Format
+# Centralized logging for Ghost platform
 
-# Loki Configuration - Minimal Best Practice Approach
-# Let the Loki chart handle all defaults, only override essential settings
+# Global Configuration
+global:
+  # Namespace override
+  namespaceOverride: logging-new
+
+# Loki Configuration
 loki:
+  # Basic Loki settings
   enabled: true
   isDefault: false
-  
-  # Essential Storage Configuration
-  storage:
-    type: filesystem
-    filesystem:
-      chunks_directory: /loki/chunks
-      rules_directory: /loki/rules
   
   # Authentication
   auth_enabled: false
   
-  # Resource Configuration
+  # Resource Configuration - Optimized
   resources:
     limits:
       cpu: 200m
@@ -33,12 +31,16 @@ loki:
     size: 10Gi
     accessModes:
       - ReadWriteOnce
+  
+  # Storage Configuration
+  storage:
+    type: filesystem
 
-# Promtail Configuration (Log Agent)
+# Promtail Configuration
 promtail:
   enabled: true
   
-  # Resource Configuration
+  # Resource Configuration - Optimized
   resources:
     limits:
       cpu: 200m
@@ -47,7 +49,7 @@ promtail:
       cpu: 100m
       memory: 128Mi
   
-  # Configuration
+  # Basic Promtail config
   config:
     server:
       http_listen_port: 3101
@@ -57,7 +59,7 @@ promtail:
       filename: /tmp/positions.yaml
     
     clients:
-      - url: http://loki.logging.svc.cluster.local:3100/loki/api/v1/push
+      - url: http://loki.logging-new.svc.cluster.local:3100/loki/api/v1/push
     
     scrape_configs:
       # Kubernetes Pods
@@ -68,32 +70,12 @@ promtail:
           - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
             action: keep
             regex: true
-          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-            action: replace
-            target_label: __metrics_path__
-            regex: (.+)
-          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-            action: replace
-            regex: ([^:]+)(?::\d+)?;(\d+)
-            replacement: $1:$2
-            target_label: __address__
-          - action: labelmap
-            regex: __meta_kubernetes_pod_label_(.+)
           - source_labels: [__meta_kubernetes_namespace]
             action: replace
             target_label: kubernetes_namespace
           - source_labels: [__meta_kubernetes_pod_name]
             action: replace
             target_label: kubernetes_pod_name
-      
-      # System Logs
-      - job_name: system
-        static_configs:
-          - targets:
-              - localhost
-            labels:
-              job: syslog
-              __path__: /var/log/syslog
       
       # Ghost Application Logs
       - job_name: ghost-apps
@@ -109,32 +91,13 @@ promtail:
           - source_labels: [__meta_kubernetes_pod_name]
             action: replace
             target_label: pod
-          - source_labels: [__meta_kubernetes_pod_container_name]
-            action: replace
-            target_label: container
-          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_env]
-            action: replace
-            target_label: environment
 
 # Service Configuration
 service:
   type: ClusterIP
   port: 3100
-  
-# Ingress Configuration
-ingress:
-  enabled: false
-  # If you want external access, enable and configure:
-  # enabled: true
-  # hosts:
-  #   - host: loki.local
-  #     paths:
-  #       - path: /
-  #         pathType: Prefix
-  # annotations:
-  #   nginx.ingress.kubernetes.io/rewrite-target: /
 
-# Monitoring
+# Monitoring Configuration
 monitoring:
   selfMonitoring:
     enabled: true
@@ -143,3 +106,6 @@ monitoring:
   serviceMonitor:
     enabled: true
     interval: 30s
+    namespace: monitoring-new
+    labels:
+      release: monitoring-stack

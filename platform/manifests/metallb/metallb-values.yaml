@@ -1,0 +1,92 @@
+# MetalLB Configuration - Best Practices
+# Load Balancer for Ghost Platform
+
+# MetalLB Configuration
+configInline:
+  # Address pool for external services
+  address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+        - 192.168.1.100-192.168.1.200
+  
+  # BGP configuration (if needed)
+  # peers:
+  #   - peer-address: 192.168.1.1
+  #     peer-asn: 64512
+  #     my-asn: 64512
+
+# Speaker Configuration
+speaker:
+  # Enable speaker for load balancing
+  enabled: true
+  
+  # Resource configuration - Optimized
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  
+  # Speaker configuration
+  tolerateMaster: true
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Controller Configuration
+controller:
+  # Enable controller
+  enabled: true
+  
+  # Resource configuration - Optimized
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  
+  # Controller configuration
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Prometheus Metrics
+prometheus:
+  # Enable Prometheus metrics
+  enabled: true
+  
+  # Service Monitor for Prometheus
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring-new
+    
+    # Service Monitor configuration
+    labels:
+      release: monitoring-stack
+
+# RBAC Configuration
+rbac:
+  # Create RBAC resources
+  create: true
+
+# Service Account Configuration
+serviceAccount:
+  # Create service account
+  create: true
+  
+  # Service account name
+  name: ""
+
+# Namespace Configuration
+namespaceOverride: ""
+
+# Additional labels
+commonLabels: {}
+
+# Additional annotations
+commonAnnotations: {}
