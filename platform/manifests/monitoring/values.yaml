@@ -102,6 +102,22 @@ grafana:
           options:
             path: /var/lib/grafana/dashboards/default
 
+  # Custom Dashboards
+  dashboards:
+    default:
+      ghost-overview:
+        gnetId: 1860
+        revision: 25
+        datasource: Prometheus
+      ghost-performance:
+        gnetId: 11176
+        revision: 9
+        datasource: Prometheus
+      kubernetes-cluster:
+        gnetId: 315
+        revision: 2
+        datasource: Prometheus
+
 # AlertManager Configuration
 alertmanager:
   enabled: true
@@ -226,3 +242,14 @@ additionalPrometheusRules:
         annotations:
           summary: "MySQL instance is down"
           description: "MySQL instance {{ $labels.instance }} has been down for more than 5 minutes"
+
+# Additional Service Monitors for Ghost
+additionalServiceMonitors:
+  - name: ghost-service-monitor
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: ghost
+    endpoints:
+      - port: http
+        path: /ghost/api/v0/admin/stats
+        interval: 30s
