@@ -1,0 +1,228 @@
+# Prometheus Stack Configuration
+# Best practices for Ghost platform monitoring
+
+# Prometheus Configuration
+prometheus:
+  enabled: true
+  
+  # Resource Configuration
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  
+  # Persistence
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 20Gi
+    accessModes:
+      - ReadWriteOnce
+  
+  # Data Retention
+  retention: "15d"
+  retentionSize: "10GB"
+  
+  # Service Configuration
+  service:
+    type: ClusterIP
+    port: 9090
+    
+  # Ingress (disabled for internal use)
+  ingress:
+    enabled: false
+
+# Grafana Configuration
+grafana:
+  enabled: true
+  
+  # Resource Configuration
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  
+  # Persistence
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 5Gi
+    accessModes:
+      - ReadWriteOnce
+  
+  # Service Configuration
+  service:
+    type: ClusterIP
+    port: 3000
+  
+  # Admin Credentials
+  adminUser: admin
+  adminPassword: prom-operator
+  
+  # Ingress (disabled for internal use)
+  ingress:
+    enabled: false
+  
+  # Sidecar for dashboards
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: monitoring
+    datasources:
+      enabled: true
+      searchNamespace: monitoring
+  
+  # Grafana Configuration
+  grafana.ini:
+    server:
+      domain: grafana.local
+      root_url: http://grafana.local:3000
+    auth:
+      disable_login_form: false
+    security:
+      allow_embedding: true
+  
+  # Dashboards
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+
+# AlertManager Configuration
+alertmanager:
+  enabled: true
+  
+  # Resource Configuration
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  
+  # Persistence
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 2Gi
+    accessModes:
+      - ReadWriteOnce
+  
+  # Service Configuration
+  service:
+    type: ClusterIP
+    port: 9093
+  
+  # Ingress (disabled for internal use)
+  ingress:
+    enabled: false
+  
+  # Configuration
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['job', 'alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'web.hook'
+    receivers:
+      - name: 'web.hook'
+        webhook_configs:
+          - url: 'http://127.0.0.1:5001/'
+
+# Node Exporter
+nodeExporter:
+  enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+
+# Kube State Metrics
+kubeStateMetrics:
+  enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Prometheus Operator
+prometheusOperator:
+  enabled: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  # Disable admission webhooks to avoid certificate issues
+  admissionWebhooks:
+    enabled: false
+
+# Default Service Monitors
+defaultRules:
+  create: true
+  rules:
+    etcd: false
+    kubeScheduler: false
+    kubeControllerManager: false
+
+# Service Monitor Configuration
+serviceMonitor:
+  enabled: true
+  selfMonitor: true
+
+# Additional Scrape Configs
+additionalPrometheusRules:
+  - name: ghost-rules
+    rules:
+      - alert: GhostDown
+        expr: up{job="ghost"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Ghost instance is down"
+          description: "Ghost instance {{ $labels.instance }} has been down for more than 5 minutes"
+      
+      - alert: GhostHighMemoryUsage
+        expr: container_memory_usage_bytes{name="ghost"} / container_spec_memory_limit_bytes{name="ghost"} > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Ghost high memory usage"
+          description: "Ghost instance {{ $labels.instance }} memory usage is above 80%"
+      
+      - alert: MySQLDown
+        expr: up{job="mysql"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MySQL instance is down"
+          description: "MySQL instance {{ $labels.instance }} has been down for more than 5 minutes"
