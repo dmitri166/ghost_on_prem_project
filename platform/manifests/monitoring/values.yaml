@@ -5,14 +5,14 @@
 prometheus:
   enabled: true
   
-  # Resource Configuration
+  # Resource Configuration - Optimized
   resources:
     limits:
-      cpu: 1000m
-      memory: 2Gi
+      cpu: 750m
+      memory: 1.5Gi
     requests:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 250m
+      memory: 512Mi
   
   # Persistence
   persistence:
@@ -22,9 +22,9 @@ prometheus:
     accessModes:
       - ReadWriteOnce
   
-  # Data Retention
-  retention: "15d"
-  retentionSize: "10GB"
+  # Data Retention - Reduced for performance
+  retention: "7d"
+  retentionSize: "5GB"
   
   # Service Configuration
   service:
@@ -39,14 +39,14 @@ prometheus:
 grafana:
   enabled: true
   
-  # Resource Configuration
+  # Resource Configuration - Optimized
   resources:
     limits:
-      cpu: 500m
-      memory: 1Gi
-    requests:
-      cpu: 250m
+      cpu: 300m
       memory: 512Mi
+    requests:
+      cpu: 150m
+      memory: 256Mi
   
   # Persistence
   persistence:

@@ -26,10 +26,10 @@ ingress:
 
 resources:
   limits:
-    cpu: 1000m
+    cpu: 750m
     memory: 1Gi
   requests:
-    cpu: 200m
+    cpu: 150m
     memory: 256Mi
 
 # Persistent Storage
