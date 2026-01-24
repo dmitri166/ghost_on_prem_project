@@ -3,8 +3,8 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/dmitri166/ghost-development
-  tag: "1.0.7"
+  repository: ghcr.io/dmitri166/ghost-production
+  tag: "v1.0.16"
   pullPolicy: IfNotPresent
 
 service:
