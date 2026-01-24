@@ -15,7 +15,7 @@ spec:
     path: platform/manifests/logging
     helm:
       valueFiles:
-        - values.yaml
+        - loki-values.yaml
       parameters:
         - name: global.namespace
           value: logging-new
