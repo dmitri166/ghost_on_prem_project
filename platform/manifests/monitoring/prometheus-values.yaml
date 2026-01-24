@@ -179,6 +179,9 @@ prometheusOperator:
     requests:
       cpu: 250m
       memory: 256Mi
+  # Disable admission webhooks to avoid certificate issues
+  admissionWebhooks:
+    enabled: false
 
 # Default Service Monitors
 defaultRules:
