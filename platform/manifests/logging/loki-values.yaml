@@ -1,12 +1,13 @@
 # Loki Configuration Values
 # Centralized log aggregation for Ghost platform
 
-# Loki Configuration
+# Loki Configuration - Minimal Best Practice Approach
+# Let the Loki chart handle all defaults, only override essential settings
 loki:
   enabled: true
   isDefault: false
   
-  # Storage Configuration
+  # Essential Storage Configuration
   storage:
     type: filesystem
     filesystem:
@@ -32,13 +33,6 @@ loki:
     size: 10Gi
     accessModes:
       - ReadWriteOnce
-  
-  # Configuration - Simplified approach
-  # Let the chart handle most config, only override what's needed
-  auth_enabled: false
-  
-  server:
-    http_listen_port: 3100
 
 # Promtail Configuration (Log Agent)
 promtail:
