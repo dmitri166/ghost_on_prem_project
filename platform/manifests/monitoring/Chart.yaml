@@ -1,0 +1,11 @@
+apiVersion: v2
+name: monitoring-stack
+description: Ghost Platform Monitoring Stack
+type: application
+version: 1.0.0
+appVersion: "56.6.1"
+
+dependencies:
+  - name: kube-prometheus-stack
+    version: 56.6.1
+    repository: https://prometheus-community.github.io/helm-charts
