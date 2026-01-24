@@ -1,0 +1,99 @@
+# KEDA Configuration - Best Practices
+# Kubernetes Event-driven Autoscaling for Ghost Platform
+
+# KEDA Operator Configuration
+keda:
+  # Resource Configuration - Optimized
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
+  # Enable metrics
+  metrics:
+    # Prometheus metrics
+    prometheus:
+      enabled: true
+      
+      # Service Monitor for Prometheus
+      serviceMonitor:
+        enabled: true
+        namespace: monitoring-new
+
+# HTTP Scaler Configuration (for Ghost HTTP requests)
+http:
+  # Enable HTTP scaler
+  enabled: true
+  
+  # HTTP scaler configuration
+  timeout: 30000
+  
+  # HTTP scaler resources
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# Ghost Specific Scaling Configuration
+# This will be used by Ghost applications to scale based on traffic
+scaling:
+  # Default scaling behavior
+  default:
+    # Minimum replicas
+    minReplicaCount: 1
+    
+    # Maximum replicas
+    maxReplicaCount: 10
+    
+    # Scaling cooldown period
+    cooldownPeriod: 300
+    
+    # Polling interval
+    pollingInterval: 30
+    
+    # Scaling behavior
+    behavior:
+      # Scale up configuration
+      scaleUp:
+        # Stabilization window
+        stabilizationWindowSeconds: 60
+        
+        # Policies
+        policies:
+          - type: Percent
+            value: 100  # Double the replicas
+            periodSeconds: 15
+      
+      # Scale down configuration
+      scaleDown:
+        # Stabilization window
+        stabilizationWindowSeconds: 300
+        
+        # Policies
+        policies:
+          - type: Percent
+            value: 10  # Reduce by 10%
+            periodSeconds: 60
+
+# Webhooks Configuration
+webhooks:
+  # Enable webhooks for external triggers
+  enabled: true
+  
+  # Webhook configuration
+  namespace: kedacore
+  
+  # Webhook resources
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi

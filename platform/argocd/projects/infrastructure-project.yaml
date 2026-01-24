@@ -20,6 +20,12 @@ spec:
     server: https://kubernetes.default.svc
   - namespace: kube-system
     server: https://kubernetes.default.svc
+  - namespace: kedacore
+    server: https://kubernetes.default.svc
+  - namespace: kyverno-system
+    server: https://kubernetes.default.svc
+  - namespace: security
+    server: https://kubernetes.default.svc
   clusterResourceWhitelist:
   - group: ""
     kind: Service

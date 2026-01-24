@@ -1,0 +1,11 @@
+apiVersion: v2
+name: security-scanning
+version: 1.0.0
+description: Security scanning stack for Ghost platform - Trivy and Falco
+dependencies:
+  - name: trivy-operator
+    version: "0.16.1"
+    repository: https://aquasecurity.github.io/helm-charts/
+  - name: falco
+    version: "3.4.0"
+    repository: https://falco.org/repo/charts

@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyverno-policies
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: kyverno
+    app.kubernetes.io/component: security
+    app.kubernetes.io/part-of: ghost-platform
+spec:
+  project: infrastructure
+  source:
+    repoURL: https://github.com/dmitri166/ghost_on_prem_project
+    targetRevision: master
+    path: policy
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kyverno-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  revisionHistoryLimit: 10

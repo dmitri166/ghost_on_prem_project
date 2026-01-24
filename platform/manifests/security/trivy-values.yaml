@@ -1,0 +1,72 @@
+# Trivy Scanner Configuration - Best Practices
+# Container and Kubernetes Security Scanning
+
+# Trivy Operator Configuration
+trivy:
+  # Resource Configuration - Optimized
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  
+  # Scan Configurations
+  scanJob:
+    # Enable vulnerability scanning
+    vulnerabilityReports:
+      enabled: true
+    
+    # Enable config audit scanning
+    configAuditReports:
+      enabled: true
+    
+    # Enable RBAC assessment
+    rbacAssessmentReports:
+      enabled: true
+    
+    # Enable exposed secrets scanning
+    exposedSecretsReports:
+      enabled: true
+    
+    # Resource limits for scan jobs
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+# Operator Configuration
+operator:
+  # Resource Configuration - Optimized
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
+  # Enable leader election
+  leaderElection:
+    enabled: true
+
+# Metrics Configuration
+metrics:
+  # Enable Prometheus metrics
+  enabled: true
+  
+  # Service Monitor for Prometheus
+  serviceMonitor:
+    enabled: true
+
+# Custom vulnerability reports
+compliance:
+  # Enable compliance reports
+  enabled: true
+  
+  # Compliance configurations
+  failEntriesLimit: 10

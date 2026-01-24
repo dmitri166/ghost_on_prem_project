@@ -1,0 +1,8 @@
+apiVersion: v2
+name: keda
+version: 1.0.0
+description: KEDA autoscaling for Ghost platform
+dependencies:
+  - name: keda
+    version: "2.11.2"
+    repository: https://kedacore.github.io/charts

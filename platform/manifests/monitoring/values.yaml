@@ -195,9 +195,9 @@ prometheusOperator:
     requests:
       cpu: 250m
       memory: 256Mi
-  # Disable admission webhooks to avoid certificate issues
+  # Enable admission webhooks for proper CRD installation
   admissionWebhooks:
-    enabled: false
+    enabled: true
 
 # Default Service Monitors
 defaultRules:
