@@ -17,6 +17,7 @@ serviceAccount:
 
 ingress:
   enabled: true
+  className: traefik
   hosts:
     - host: ghost-dev.local
       paths:
