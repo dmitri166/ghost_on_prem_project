@@ -1,10 +1,11 @@
-# KEDA Configuration for Ghost Autoscaling
+# KEDA Autoscaling Application
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: keda-autoscaling
   namespace: argocd
   labels:
+    app.kubernetes.io/name: keda
     app.kubernetes.io/component: infrastructure
 spec:
   project: infrastructure
@@ -12,6 +13,9 @@ spec:
     repoURL: https://github.com/dmitri166/ghost_on_prem_project
     targetRevision: master
     path: platform/manifests/keda
+    helm:
+      valueFiles:
+        - keda-values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: kedacore
@@ -21,3 +25,4 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+  revisionHistoryLimit: 10

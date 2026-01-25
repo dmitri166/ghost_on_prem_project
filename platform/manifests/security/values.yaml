@@ -1,0 +1,63 @@
+# Security Scanning Configuration
+# Trivy Operator + Falco Security
+
+# Trivy Operator Configuration
+trivy:
+  enabled: true
+  
+  # Resource Configuration
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
+  # Scan reports
+  report:
+    # Generate vulnerability reports
+    vulnerabilityReports:
+      enabled: true
+    
+    # Generate config audit reports
+    configAuditReports:
+      enabled: true
+    
+    # Generate RBAC assessment reports
+    rbacAssessmentReports:
+      enabled: true
+  
+  # Scan intervals
+  scanJobs:
+    # Scan every 6 hours
+    repeatInterval: 6h
+    
+    # Scan timeout
+    scanTimeout: 5m
+    
+    # Scan job resources
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+# Falco Configuration
+falco:
+  enabled: true
+  
+  # Resource Configuration
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  # Enable default rules
+  rulesFiles:
+    - /etc/falco/rules.d/*.yaml

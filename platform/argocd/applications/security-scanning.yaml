@@ -1,18 +1,21 @@
+# Security Scanning Application
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: security-scanning
   namespace: argocd
   labels:
-    app.kubernetes.io/name: security-scanning
+    app.kubernetes.io/name: security
     app.kubernetes.io/component: security
-    app.kubernetes.io/part-of: ghost-platform
 spec:
   project: infrastructure
   source:
     repoURL: https://github.com/dmitri166/ghost_on_prem_project
     targetRevision: master
     path: platform/manifests/security
+    helm:
+      valueFiles:
+        - values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: security

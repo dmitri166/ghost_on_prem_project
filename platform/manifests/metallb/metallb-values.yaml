@@ -16,12 +16,12 @@ configInline:
   #     peer-asn: 64512
   #     my-asn: 64512
 
-# Speaker Configuration
+# Speaker Configuration - REDUCED PODS
 speaker:
   # Enable speaker for load balancing
   enabled: true
   
-  # Resource configuration - Optimized
+  # Resource Configuration - Optimized
   resources:
     requests:
       cpu: 100m
@@ -29,6 +29,9 @@ speaker:
     limits:
       cpu: 200m
       memory: 128Mi
+  
+  # Run only 1 speaker instead of 3 (one per node)
+  replicaCount: 1
   
   # Speaker configuration
   tolerateMaster: true

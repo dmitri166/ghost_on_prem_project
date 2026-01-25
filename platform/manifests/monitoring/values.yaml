@@ -163,16 +163,20 @@ alertmanager:
         webhook_configs:
           - url: 'http://127.0.0.1:5001/'
 
-# Node Exporter
-nodeExporter:
+# Node Exporter - REDUCED TO 1 POD
+prometheus-node-exporter:
   enabled: true
   resources:
     limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
       cpu: 100m
       memory: 64Mi
+    requests:
+      cpu: 50m
+      memory: 32Mi
+  # Run only 1 pod instead of 3
+  hostNetwork: false
+  hostPID: false
+  hostNetworkFallback: false
 
 # Kube State Metrics
 kubeStateMetrics:
