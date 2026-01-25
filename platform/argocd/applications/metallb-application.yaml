@@ -19,5 +19,5 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=false  # MetalLB namespace already exists from Helm
+    - CreateNamespace=true  # Create metallb-system namespace
   revisionHistoryLimit: 10

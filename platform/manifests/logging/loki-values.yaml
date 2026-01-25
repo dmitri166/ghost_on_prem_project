@@ -1,12 +1,12 @@
-# Loki Configuration - Simple Working Format
-# Centralized logging for Ghost platform
+# Loki Configuration - Minimal Working Setup
+# Only essential settings to avoid Helm template errors
 
 # Global Configuration
 global:
   # Namespace override
   namespaceOverride: logging-new
 
-# Loki Configuration
+# Loki Configuration - Minimal
 loki:
   # Basic Loki settings
   enabled: true
@@ -15,7 +15,7 @@ loki:
   # Authentication
   auth_enabled: false
   
-  # Resource Configuration - Optimized
+  # Resource Configuration
   resources:
     limits:
       cpu: 200m
@@ -36,11 +36,11 @@ loki:
   storage:
     type: filesystem
 
-# Promtail Configuration
+# Promtail Configuration - Minimal
 promtail:
   enabled: true
   
-  # Resource Configuration - Optimized
+  # Resource Configuration
   resources:
     limits:
       cpu: 200m
@@ -62,35 +62,17 @@ promtail:
       - url: http://loki.logging-new.svc.cluster.local:3100/loki/api/v1/push
     
     scrape_configs:
-      # Kubernetes Pods
+      # Simple Kubernetes scrape
       - job_name: kubernetes-pods
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
-          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-            action: keep
-            regex: true
           - source_labels: [__meta_kubernetes_namespace]
             action: replace
             target_label: kubernetes_namespace
           - source_labels: [__meta_kubernetes_pod_name]
             action: replace
             target_label: kubernetes_pod_name
-      
-      # Ghost Application Logs
-      - job_name: ghost-apps
-        kubernetes_sd_configs:
-          - role: pod
-        relabel_configs:
-          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
-            action: keep
-            regex: ghost
-          - source_labels: [__meta_kubernetes_namespace]
-            action: replace
-            target_label: namespace
-          - source_labels: [__meta_kubernetes_pod_name]
-            action: replace
-            target_label: pod
 
 # Service Configuration
 service:
@@ -100,12 +82,6 @@ service:
 # Monitoring Configuration
 monitoring:
   selfMonitoring:
-    enabled: true
-    lokiCanary:
-      enabled: true
+    enabled: false  # Disable to avoid complexity
   serviceMonitor:
-    enabled: true
-    interval: 30s
-    namespace: monitoring-new
-    labels:
-      release: monitoring-stack
+    enabled: false  # Disable to avoid complexity

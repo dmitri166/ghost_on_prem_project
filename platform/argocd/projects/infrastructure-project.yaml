@@ -7,6 +7,11 @@ spec:
   description: "Project for cluster-level infrastructure applications (MetalLB, monitoring, etc.)"
   sourceRepos:
   - https://github.com/dmitri166/ghost_on_prem_project
+  - https://aquasecurity.github.io/helm-charts/
+  - https://falco.org/repo/charts
+  - https://metallb.github.io/metallb
+  - https://kedacore.github.io/charts
+  - https://grafana.github.io/helm-charts
   destinations:
   - namespace: metallb-system
     server: https://kubernetes.default.svc
