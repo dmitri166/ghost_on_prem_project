@@ -15,7 +15,7 @@ spec:
     path: platform/manifests/monitoring
     helm:
       valueFiles:
-        - values.yaml
+        - monitoring-values.yaml
       parameters:
         - name: global.namespace
           value: monitoring-new

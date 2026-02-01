@@ -15,7 +15,7 @@ spec:
     path: platform/manifests/security
     helm:
       valueFiles:
-        - values.yaml
+        - security-values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: security

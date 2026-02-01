@@ -18,7 +18,7 @@ spec:
         - keda-values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: kedacore
+    namespace: kedacore-new
   syncPolicy:
     automated:
       prune: true

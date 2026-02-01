@@ -177,6 +177,8 @@ prometheus-node-exporter:
   hostNetwork: false
   hostPID: false
   hostNetworkFallback: false
+  # Force single replica
+  replicaCount: 1
 
 # Kube State Metrics
 kubeStateMetrics:

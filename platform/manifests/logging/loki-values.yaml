@@ -35,6 +35,29 @@ loki:
   # Storage Configuration
   storage:
     type: filesystem
+  
+  # Replication Configuration - MINIMAL FOR DEV
+  replication_factor: 1
+  
+  # Ring Configuration
+  ring:
+    kvstore:
+      store: inmemory
+  
+  # Gateway Configuration
+  gateway:
+    enabled: true
+    replicas: 1
+  
+  # Read/Write Configuration - SINGLE POD EACH
+  read:
+    replicas: 1
+  write:
+    replicas: 1
+  
+  # Canary Configuration - DISABLE FOR DEV
+  canary:
+    enabled: false
 
 # Promtail Configuration - Minimal
 promtail:
@@ -85,3 +108,7 @@ monitoring:
     enabled: false  # Disable to avoid complexity
   serviceMonitor:
     enabled: false  # Disable to avoid complexity
+
+# Grafana Agent Configuration - DISABLE FOR DEV
+grafana-agent:
+  enabled: false
